@@ -98,26 +98,39 @@ public class ProgressView : AbstractInstallerView {
         config.lang = "en_US.UTF-8";
         config.remove = Build.MANIFEST_REMOVE_PATH;
 
-        // User-defined partition configurations are generated here.
-        // TODO: The following code is an example of API usage.
+        // TODO: The following code is an example of API usage. Disk configurations should be
+        // passed as a parameter into this method, rather than being hard-coded as it is below.
+
+        // Reads all of the information regarding the specified device and creates an in-memory
+        // representation of the disk that actions can be performed against. Any changes made to
+        // this disk object will not be written to the disk until after it has been passed into
+        // the instal method, along with other disks.
         Disk disk = new Disk ("/dev/sda");
         if (disk == null) {
             stderr.printf("could not find /dev/sda.");
             exit(1);
         }
 
+        // Obtains the preferred partition table based on what the system is currently loaded with.
+        // EFI partitions will need to have both an EFI partition with an `esp` flag, and a root
+        // partition; whereas MBR-based installations only require a root partition.
         PartitionTable bootloader = bootloader_detect ();
 
         switch (bootloader) {
             case PartitionTable.MSDOS:
+                // Wipes the partition table clean with a brand new MSDOS partition table.
                 if (disk.mklabel (bootloader) != 0) {
                     stderr.printf("unable to write MSDOS partition table to /dev/sda");
                     exit(1);
                 }
 
+                // Obtains the start and end values using a human-readable abstraction.
                 var start = disk.get_sector (Sector.start());
                 var end = disk.get_sector (Sector.end());
 
+                // Adds a newly-created partition builder object to the disk. This object is
+                // defined as an EXT4 partition with the `boot` partition flag, and shall be
+                // mounted to `/` within the `/etc/fstab` of the installed system.
                 int result = disk.add_partition(
                     new PartitionBuilder (start, end, FileSystemType.EXT4)
                         .set_partition_type (PartitionType.PRIMARY)
@@ -137,6 +150,9 @@ public class ProgressView : AbstractInstallerView {
                     exit (1);
                 }
 
+                // Sectors may also be constructed using different units of measurements, such as
+                // by megabytes and percents. The library author can choose whichever unit makes
+                // more sense for their use cases.
                 var efi_sector = Sector() {
                     flag = SectorKind.MEGABYTE,
                     value = 512
@@ -145,6 +161,9 @@ public class ProgressView : AbstractInstallerView {
                 var start = disk.get_sector (Sector.start());
                 var end = disk.get_sector (efi_sector);
 
+                // Adds a new partitition builder object which is defined to be a FAT partition
+                // with the `esp` flag, and shall be mounted to `/boot/efi` after install. This
+                // meets the requirement for an EFI partition with an EFI install.
                 int result = disk.add_partition(
                     new PartitionBuilder (start, end, FileSystemType.FAT32)
                         .set_partition_type (PartitionType.PRIMARY)
@@ -160,6 +179,9 @@ public class ProgressView : AbstractInstallerView {
                 start = disk.get_sector (efi_sector);
                 end = disk.get_sector (Sector.end ());
 
+                // EFI installs require both an EFI and root partition, so this add a new EXT4
+                // partition that is configured to start at the end of the EFI sector, and
+                // continue to the end of the disk.
                 result = disk.add_partition (
                     new PartitionBuilder (start, end, FileSystemType.EXT4)
                         .set_partition_type (PartitionType.PRIMARY)
@@ -174,6 +196,9 @@ public class ProgressView : AbstractInstallerView {
                 break;
         }
 
+        // Each disk that will have changes made to it should be added to a Disks object. This
+        // object will be passed to the install method, and used as a blueprint for how changes
+        // to each disk should be made, and where critical partitions are located.
         Disks disks = Disks.with_capacity (1);
         disks.push (disk);
 
