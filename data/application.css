@@ -186,56 +186,52 @@ buttonbox {
     animation: success 450ms ease infinite alternate;
 }
 
-.disk-bar {
-    padding: 0;
-    border-radius: 4px;
+
+.storage-bar .fill-block.swap {
+    background-color: #a10705;
 }
 
-.ext4 {
+.storage-bar .fill-block.ext4 {
     background-color: #3a9104;
 }
 
-.ext3 {
+.storage-bar .fill-block.ext3 {
     background-color: #3a9104;
 }
 
-.ext2 {
+.storage-bar .fill-block.ext2 {
     background-color: #206b00;
 }
 
-.fat16,
-.fat32 {
+.storage-bar .fill-block.fat16,
+.storage-bar .fill-block.fat32 {
     background-color: #f9c440;
 }
 
-.btrfs {
+.storage-bar .fill-block.btrfs {
     background-color: #3689e6;
 }
 
-.xfs {
+.storage-bar .fill-block.xfs {
     background-color: #485a6c;
 }
 
-.ntfs {
+.storage-bar .fill-block.ntfs {
     background-color: #f37329;
 }
 
-.luks {
+.storage-bar .fill-block.luks {
     background-color: #7a36b1;
 }
 
-.lvm {
+.storage-bar .fill-block.lvm {
     background-color: #4c158a;
 }
 
-.none {
+.storage-bar .fill-block.none {
     background-color: #a3907c;
 }
 
-.unused {
+.storage-bar .fill-block.unused {
     background-color: #d4d4d4;
-}
-
-.swap {
-    background-color: #a10705;
 }
