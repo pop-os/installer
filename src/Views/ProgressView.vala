@@ -26,6 +26,8 @@ public class ProgressView : AbstractInstallerView {
     private Gtk.ProgressBar progressbar;
     private Gtk.Label progressbar_label;
     private const int NUM_STEP = 4;
+    private Gtk.Widget current_widget_on_stack;
+    private Utils.UPower upower;
 
     construct {
         var logo = new Gtk.Image ();
@@ -52,10 +54,21 @@ public class ProgressView : AbstractInstallerView {
         artwork.get_style_context().add_class("artwork");
         artwork.vexpand = true;
 
+        var ignore_button = new Gtk.Button.with_label (_("Ignore"));
+        ignore_button.halign = Gtk.Align.END;
+        ignore_button.get_style_context ().add_class (Gtk.STYLE_CLASS_DESTRUCTIVE_ACTION);
+
+        var warning_view = Utils.setup_grid (
+            _("Connect to a Power Source"),
+            _("Your device is running on battery power. It's recommended to be plugged in while installing."),
+            "battery-ac-adapter"
+        );
+
         var logo_stack = new Gtk.Stack ();
         logo_stack.transition_type = Gtk.StackTransitionType.OVER_UP_DOWN;
         logo_stack.add (artwork);
         logo_stack.add (terminal_output);
+        logo_stack.add (warning_view);
 
         var terminal_button = new Gtk.ToggleButton ();
         terminal_button.halign = Gtk.Align.END;
@@ -72,8 +85,9 @@ public class ProgressView : AbstractInstallerView {
         content_area.margin_end = 22;
         content_area.margin_start = 22;
         content_area.attach (logo_stack, 0, 0, 2, 1);
-        content_area.attach (progressbar_label, 0, 1, 1, 1);
-        content_area.attach (terminal_button, 1, 1, 1, 1);
+        content_area.attach (progressbar_label, 0, 1);
+        content_area.attach (terminal_button, 1, 1);
+        content_area.attach (ignore_button, 1, 1);
         content_area.attach (progressbar, 0, 2, 2, 1);
 
         get_style_context ().add_class ("progress-view");
@@ -89,7 +103,38 @@ public class ProgressView : AbstractInstallerView {
 
         terminal_view.size_allocate.connect (() => attempt_scroll ());
 
+        ignore_button.clicked.connect (() => {
+            if (current_widget_on_stack != null) {
+                logo_stack.visible_child = current_widget_on_stack;
+                current_widget_on_stack = null;
+            }
+            terminal_button.visible = true;
+            ignore_button.visible = false;
+        });
+
+        try {
+            upower = Bus.get_proxy_sync (BusType.SYSTEM, "org.freedesktop.UPower", "/org/freedesktop/UPower", GLib.DBusProxyFlags.GET_INVALIDATED_PROPERTIES);
+
+            (upower as DBusProxy).g_properties_changed.connect ((changed, invalid) => {
+                var on_battery = changed.lookup_value ("OnBattery", GLib.VariantType.BOOLEAN);
+                if (on_battery != null) {
+                    if (upower.on_battery && logo_stack.visible_child != warning_view) {
+                        current_widget_on_stack = logo_stack.visible_child;
+                        logo_stack.visible_child = warning_view;
+                    } else if (current_widget_on_stack != null) {
+                        logo_stack.visible_child = current_widget_on_stack;
+                        current_widget_on_stack = null;
+                    }
+                    terminal_button.visible = !upower.on_battery;
+                    ignore_button.visible = upower.on_battery;
+                }
+            });
+        } catch (Error e) {
+            warning (e.message);
+        }
+
         show_all ();
+        ignore_button.visible = false;
     }
 
     private void attempt_scroll () {
