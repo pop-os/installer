@@ -49,6 +49,45 @@ namespace Utils {
         return os_pretty_name;
     }
 
+    public Gtk.Grid setup_grid (string title, string description, string icon_name) {
+        var title_label = new Gtk.Label (title);
+        title_label.get_style_context ().add_class ("h2");
+        title_label.wrap = true;
+        title_label.max_width_chars = 30;
+        title_label.valign = Gtk.Align.START;
+
+        var description_label = new Gtk.Label (description);
+        description_label.wrap = true;
+        description_label.max_width_chars = 60;
+        description_label.xalign = 0;
+        description_label.valign = Gtk.Align.CENTER;
+        description_label.vexpand = true;
+
+        var image = new Gtk.Image.from_icon_name (icon_name, Gtk.IconSize.DIALOG);
+        image.valign = Gtk.Align.END;
+
+        var artwork = new Gtk.Grid ();
+        artwork.get_style_context().add_class("issue");
+        artwork.get_style_context().add_class("artwork");
+        artwork.expand = true;
+
+        var grid = new Gtk.Grid ();
+        grid.column_homogeneous = true;
+        grid.column_spacing = 12;
+        grid.expand = true;
+        grid.halign = Gtk.Align.CENTER;
+        grid.margin_start = grid.margin_end = 12;
+        grid.row_spacing = 6;
+        grid.valign = Gtk.Align.FILL;
+        grid.vexpand = true;
+
+        grid.attach (artwork, 0, 0, 1, 1);
+        grid.attach (title_label, 0, 1, 1, 1);
+        grid.attach (description_label, 1, 0, 1, 2);
+
+        return grid;
+    }
+
     public static void shutdown () {
         if (Installer.App.test_mode) {
             critical (_("Test mode shutdown"));
@@ -83,6 +122,11 @@ namespace Utils {
         } else {
             Installer.App.get_instance ().quit ();
         }
+    }
+
+    [DBus (name = "org.freedesktop.UPower")]
+    public interface UPower : GLib.Object {
+        public abstract bool on_battery { owned get; set; }
     }
 
     [DBus (name = "org.freedesktop.login1.Manager")]
@@ -121,4 +165,3 @@ namespace Utils {
         return seat_instance;
     }
 }
-
