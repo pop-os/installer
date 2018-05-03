@@ -251,7 +251,7 @@ public class ProgressView : AbstractInstallerView {
 
         string? efi_part = Recovery.efi_partition ();
         string? recovery_part = Recovery.recovery_partition ();
-        string? lvm_part = Recovery.lvm_partition();
+        string? lvm_part = lvm ? Recovery.lvm_partition() : null;
         //TODO: Find swap
 
         if (lvm_part == null) {
