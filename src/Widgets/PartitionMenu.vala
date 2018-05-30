@@ -284,6 +284,7 @@ public class Installer.PartitionMenu : Gtk.Popover {
             partition_path,
             parent_disk,
             mount,
+            partition_bar.end - partition_bar.start,
             (format_partition.active ? Mount.Flags.FORMAT : 0) + (is_lvm ? Mount.Flags.LVM : 0),
             filesystem,
             this
@@ -355,4 +356,3 @@ public class Installer.PartitionMenu : Gtk.Popover {
         return custom.get_text ().has_prefix ("/");
     }
  }
-

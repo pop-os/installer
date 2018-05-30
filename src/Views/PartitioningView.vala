@@ -39,6 +39,8 @@ public class Installer.PartitioningView : AbstractInstallerView {
         Object (cancellable: false);
     }
 
+    const uint64 REQUIRED_EFI_SECTORS = 524288;
+
     construct {
         mounts = new Gee.ArrayList<Installer.Mount> ();
         luks = new Gee.ArrayList<LuksCredentials> ();
@@ -117,7 +119,21 @@ public class Installer.PartitioningView : AbstractInstallerView {
         });
         modify_partitions_button.clicked.connect (() => open_partition_editor ());
         back_button.clicked.connect (() => ((Gtk.Stack) get_parent ()).visible_child = previous_view);
-        next_button.clicked.connect (() => next_step ());
+
+        next_button.clicked.connect (() => {
+            Mount? efi_mount = get_efi_mount ();
+            if (efi_mount != null) {
+                if (efi_mount.sectors < REQUIRED_EFI_SECTORS) {
+                    new ErrorDialog (
+                        "Invalid Disk Configuration",
+                        "EFI partition must be at least 256 MiB.\n\nEither resize the partition, or create a new one."
+                    ).run ((Gtk.Window) get_toplevel ());
+                    return;
+                }
+            }
+
+            next_step();
+        });
 
         show_all ();
     }
@@ -198,6 +214,16 @@ public class Installer.PartitioningView : AbstractInstallerView {
         var disk_bar = new DiskBar (model, path, size, (owned) partitions);
         label_sizer.add_widget (disk_bar.label);
         disk_list.pack_start (disk_bar);
+    }
+
+    private unowned Mount? get_efi_mount () {
+        foreach (unowned Mount m in mounts.to_array ()) {
+            if (m.mount_point == "/boot/efi") {
+                return m;
+            }
+        }
+
+        return null;
     }
 
     private void validate_status () {
