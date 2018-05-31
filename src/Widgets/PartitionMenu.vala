@@ -286,8 +286,7 @@ public class Installer.PartitionMenu : Gtk.Popover {
             mount,
             partition_bar.end - partition_bar.start,
             (format_partition.active ? Mount.Flags.FORMAT : 0)
-                + (is_lvm ? Mount.Flags.LVM : 0)
-                + (partition_bar.info->is_esp () ? Mount.Flags.ESP : 0),
+                + (is_lvm ? Mount.Flags.LVM : 0),
             filesystem,
             this
         ));
