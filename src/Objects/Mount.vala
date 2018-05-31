@@ -31,7 +31,8 @@ public class Installer.Mount {
     public enum Flags {
         FORMAT = 1,
         LVM = 2,
-        LVM_ON_LUKS = 4
+        LVM_ON_LUKS = 4,
+        ESP = 8,
     }
 
     public Mount (string partition, string parent_disk, string mount,

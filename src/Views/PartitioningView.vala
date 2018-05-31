@@ -56,7 +56,7 @@ public class Installer.PartitioningView : AbstractInstallerView {
                 break;
             case Distinst.PartitionTable.GPT:
                 // Device is in EFI mode, so we also require a boot partition
-                required_description = _("You must at least select a <b>Root (/)</b> partition and a <b>Boot (/boot/efi)</b> partition.");
+                required_description = _("You must at least select a <b>Root (/)</b> partition and a <b>Boot (/boot/efi)</b> partition. The EFI partition must also be at least 256 MiB.");
                 break;
         }
 
@@ -119,21 +119,7 @@ public class Installer.PartitioningView : AbstractInstallerView {
         });
         modify_partitions_button.clicked.connect (() => open_partition_editor ());
         back_button.clicked.connect (() => ((Gtk.Stack) get_parent ()).visible_child = previous_view);
-
-        next_button.clicked.connect (() => {
-            Mount? efi_mount = get_efi_mount ();
-            if (efi_mount != null) {
-                if (efi_mount.sectors < REQUIRED_EFI_SECTORS) {
-                    new ErrorDialog (
-                        "Invalid Disk Configuration",
-                        "EFI partition must be at least 256 MiB.\n\nEither resize the partition, or create a new one."
-                    ).run ((Gtk.Window) get_toplevel ());
-                    return;
-                }
-            }
-
-            next_step();
-        });
+        next_button.clicked.connect (() => next_step ());
 
         show_all ();
     }
@@ -216,16 +202,6 @@ public class Installer.PartitioningView : AbstractInstallerView {
         disk_list.pack_start (disk_bar);
     }
 
-    private unowned Mount? get_efi_mount () {
-        foreach (unowned Mount m in mounts.to_array ()) {
-            if (m.mount_point == "/boot/efi") {
-                return m;
-            }
-        }
-
-        return null;
-    }
-
     private void validate_status () {
         uint8 flags = 0;
         const uint8 ROOT = 1;
@@ -305,19 +281,24 @@ public class Installer.PartitioningView : AbstractInstallerView {
         }
     }
 
-    private void set_mount (Mount mount) {
+    private string? set_mount (Mount mount) {
+        if (Mount.Flags.ESP in mount.flags && mount.sectors < REQUIRED_EFI_SECTORS) {
+            return _("EFI partition is too small");
+        }
+
         unset_mount_point (mount);
         for (int i = 0; i < mounts.size; i++) {
             if (mounts[i].partition_path == mount.partition_path) {
                 mounts[i] = mount;
                 validate_status ();
-                return;
+                return null;
             }
         }
 
         validate_status ();
         mounts.add (mount);
         validate_status ();
+        return null;
     }
 
     private bool mount_is_set (string mount_point) {
