@@ -49,15 +49,6 @@ namespace Utils {
         return os_pretty_name;
     }
 
-    public void set_rgb (Gdk.Pixbuf pixbuf, uint32 rgb) {
-        unowned uint8[] pixels = pixbuf.get_pixels_with_length ();
-        for (int i = 0; i < pixels.length; i += 4) {
-            pixels[ i ] = (uint8) (rgb >> 16);
-            pixels[i+1] = (uint8) (rgb >> 8);
-            pixels[i+2] = (uint8) rgb;
-        }
-    }
-
     public static void shutdown () {
         if (Installer.App.test_mode) {
             critical (_("Test mode shutdown"));

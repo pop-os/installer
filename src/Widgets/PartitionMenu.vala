@@ -292,21 +292,15 @@ public class Installer.PartitionMenu : Gtk.Popover {
             this
         ));
 
-        var mount_icon_name = error == null
-            ? "process-completed-symbolic"
-            : "dialog-warning-symbolic";
-
-        var icon_theme = Gtk.IconTheme.get_default ();
-        var pixbuf = icon_theme.load_icon (mount_icon_name, 16, 0);
+        var mount_icon = new Gtk.Image.from_icon_name (
+            error == null ? "process-completed-symbolic" : "dialog-warning-symbolic",
+            Gtk.IconSize.SMALL_TOOLBAR
+        );
 
         if (error != null) {
-            Utils.set_rgb (pixbuf, 0xFF0000);
             partition_bar.set_tooltip_text (error);
-        } else {
-            Utils.set_rgb (pixbuf, 0x006600);
         }
 
-        var mount_icon = new Gtk.Image.from_pixbuf (pixbuf);
         mount_icon.halign = Gtk.Align.END;
         mount_icon.valign = Gtk.Align.END;
         mount_icon.margin = 6;
