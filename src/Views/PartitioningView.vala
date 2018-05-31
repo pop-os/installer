@@ -228,9 +228,9 @@ public class Installer.PartitioningView : AbstractInstallerView {
                 m.should_format () ? "true" : "false"
             );
 
-            if (m.mount_point == "/" && m.is_valid_root_mount ()) {
+            if (m.mount_point == "/") {
                 flags |= ROOT;
-            } else if (m.mount_point == "/boot/efi" && m.is_valid_boot_mount ()) {
+            } else if (m.mount_point == "/boot/efi") {
                 flags |= EFI;
             }
         }
@@ -282,11 +282,20 @@ public class Installer.PartitioningView : AbstractInstallerView {
     }
 
     private string? set_mount (Mount mount) {
-        if (Mount.Flags.ESP in mount.flags && mount.sectors < REQUIRED_EFI_SECTORS) {
-            return _("EFI partition is too small");
+        unset_mount_point (mount);
+
+        if (mount.mount_point == "/boot/efi") {
+            if (!mount.is_valid_boot_mount()) {
+                return _("EFI partition has the wrong file system");
+            } else if (mount.sectors < REQUIRED_EFI_SECTORS) {
+                return _("EFI partition is too small");
+            }
+        } else if (mount.mount_point == "/" && !mount.is_valid_root_mount ()) {
+            return _("Invalid file system for root");
+        } else if (mount.mount_point == "/home" && !mount.is_valid_root_mount ()) {
+            return _("Invalid file system for home");
         }
 
-        unset_mount_point (mount);
         for (int i = 0; i < mounts.size; i++) {
             if (mounts[i].partition_path == mount.partition_path) {
                 mounts[i] = mount;
