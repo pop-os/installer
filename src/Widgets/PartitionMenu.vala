@@ -160,7 +160,7 @@ public class Installer.PartitionMenu : Gtk.Popover {
 
         custom.visible = false;
 
-        format_partition.notify["active"].connect (() => {
+        this.closed.connect (() => {
             if (!disable_signals) {
                 check_values (set_mount);
             }
@@ -196,20 +196,11 @@ public class Installer.PartitionMenu : Gtk.Popover {
                 type.sensitive = true;
                 format_partition.visible = true;
             }
-
-            check_values (set_mount);
         });
 
         type.changed.connect (() => {
             if (!disable_signals) {
-                check_values (set_mount);
                 set_format_sensitivity ();
-            }
-        });
-
-        custom.changed.connect (() => {
-            if (!disable_signals) {
-                check_values (set_mount);
             }
         });
 
@@ -365,6 +356,8 @@ public class Installer.PartitionMenu : Gtk.Popover {
     }
 
     private bool custom_valid () {
-        return custom.get_text ().has_prefix ("/");
+        string custom = custom.get_text ();
+        return custom.has_prefix ("/")
+            && (custom == "/boot/efi" && Distinst.bootloader_detect () == Distinst.PartitionTable.GPT);
     }
  }
