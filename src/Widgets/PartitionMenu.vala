@@ -39,6 +39,8 @@ public class Installer.PartitionMenu : Gtk.Popover {
     public string parent_disk;
     public string partition_path;
 
+    private Gtk.Revealer bottom_revealer;
+
     // A reference to the parent which owns this menu.
     private PartitionBar partition_bar;
 
@@ -149,7 +151,7 @@ public class Installer.PartitionMenu : Gtk.Popover {
         var grid = new Gtk.Grid ();
         grid.column_spacing = 12;
 
-        var bottom_revealer = new Gtk.Revealer ();
+        bottom_revealer = new Gtk.Revealer ();
         bottom_revealer.add (bottom_grid);
 
         grid.attach (top_controls,    0, 0);
@@ -249,6 +251,7 @@ public class Installer.PartitionMenu : Gtk.Popover {
         type.visible = true;
         custom.visible = false;
         disable_signals = false;
+        bottom_revealer.reveal_child = false;
         partition_bar.container.get_children ().foreach ((c) => c.destroy ());
     }
 
@@ -342,20 +345,25 @@ public class Installer.PartitionMenu : Gtk.Popover {
             case 3:
                 return "swap";
             default:
-                var custom = custom.get_text ();
-                if (custom == "/") {
+                var text = custom.get_text ();
+                var overriden = false;
+
+                if (text == "/") {
                     use_as.set_active (0);
-                } else if (custom == "/home") {
+                    overriden = true;
+                } else if (text == "/home") {
                     use_as.set_active (1);
-                } else {
-                    var boot = efi_supported ()
-                        ? custom == "/boot/efi"
-                        : custom == "/boot";
-                    if (boot) {
-                        use_as.set_active (2);
-                    }
+                    overriden = true;
+                } else if (efi_supported () ? text == "/boot/efi" : text == "/boot") {
+                    use_as.set_active (2);
+                    overriden = true;
                 }
-                return custom;
+
+                if (overriden) {
+                    custom.text = "";
+                }
+
+                return text;
         }
     }
 
