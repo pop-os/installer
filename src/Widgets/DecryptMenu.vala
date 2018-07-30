@@ -89,8 +89,7 @@ public class Installer.DecryptMenu: Gtk.Popover {
         pv_label.halign = Gtk.Align.END;
 
         pv_entry = new Gtk.Entry ();
-        string? pv_uid = Distinst.generate_unique_id("cryptdata");
-        pv_entry.text = pv_uid != null ? pv_uid : "";
+        pv_entry.text = "cryptdata";
 
         pv_entry.changed.connect (set_sensitivity);
         pv_entry.activate.connect (attempt_decrypt);
@@ -115,6 +114,12 @@ public class Installer.DecryptMenu: Gtk.Popover {
         stack.add (decrypt_view);
         stack.visible_child = decrypt_view;
         pass_entry.grab_focus_without_selecting ();
+
+        // Update the default LUKS PV name, to prevent namespace conflicts.
+        this.notify["active"].connect (() => {
+            string? pv_uid = Distinst.generate_unique_id("cryptdata");
+            pv_entry.text = pv_uid != null ? pv_uid : "";
+        });
 
         this.closed.connect (() => {
             stack.visible_child = decrypt_view;
