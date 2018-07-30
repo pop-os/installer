@@ -89,8 +89,9 @@ public class Installer.DecryptMenu: Gtk.Popover {
         pv_label.halign = Gtk.Align.END;
 
         pv_entry = new Gtk.Entry ();
-        // Set a sane default
-        pv_entry.text = "data";
+        string? pv_uid = Distinst.generate_unique_id("cryptdata");
+        pv_entry.text = pv_uid != null ? pv_uid : "";
+
         pv_entry.changed.connect (set_sensitivity);
         pv_entry.activate.connect (attempt_decrypt);
 
@@ -130,7 +131,7 @@ public class Installer.DecryptMenu: Gtk.Popover {
                 mount_icon.halign = Gtk.Align.END;
                 mount_icon.valign = Gtk.Align.END;
                 mount_icon.margin = 6;
-    
+
                 partition_bar.container.pack_start (mount_icon, true, true, 0);
                 partition_bar.container.show_all ();
                 this.destroy ();
@@ -187,4 +188,3 @@ public class Installer.DecryptMenu: Gtk.Popover {
         });
     }
 }
-
