@@ -157,7 +157,7 @@ public class Installer.TryInstallView : AbstractInstallerView {
             }
         });
         show_all ();
-        demo_button.grab_focus ();
+        clean_install_button.grab_focus ();
     }
 
     private bool handle_key_press (Gtk.Button button, Gdk.EventKey event) {
