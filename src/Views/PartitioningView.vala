@@ -124,7 +124,10 @@ public class Installer.PartitioningView : AbstractInstallerView {
             help_dialog.transient_for = (Gtk.Window) get_toplevel ();
         });
         modify_partitions_button.clicked.connect (() => open_partition_editor ());
-        back_button.clicked.connect (() => ((Gtk.Stack) get_parent ()).visible_child = previous_view);
+        back_button.clicked.connect (() => {
+            Distinst.deactivate_logical_devices ();
+            ((Gtk.Stack) get_parent ()).visible_child = previous_view;
+        });
         next_button.clicked.connect (() => next_step ());
 
         show_all ();
@@ -245,7 +248,7 @@ public class Installer.PartitioningView : AbstractInstallerView {
             }
         }
 
-        debug ("DEBUG: Current Layout:\n" + layout_debug);
+        stderr.printf ("DEBUG: Current Layout:\n" + layout_debug);
         next_button.sensitive = required in flags;
     }
 
