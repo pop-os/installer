@@ -50,11 +50,27 @@ public class Installer.TryInstallView : AbstractInstallerView {
         artwork.get_style_context ().add_class ("artwork");
         artwork.vexpand = true;
 
+        // TODO: Once we support more options, give an example here
+        // ("More options, such as…") if there's space…
+        var decrypt_description = new Gtk.Label (_("More options may be available after unlocking encrypted storage"));
+
+        var decrypt_button = new Gtk.Button.with_label (_("Unlock Encrypted Storage…"));
+
+        var decrypt_infobar = new Gtk.InfoBar ();
+        decrypt_infobar.message_type = Gtk.MessageType.INFO;
+
+        var infobar_action_area = decrypt_infobar.get_action_area () as Gtk.Container;
+        infobar_action_area.add (decrypt_button);
+
+        var infobar_content_area = decrypt_infobar.get_content_area ();
+        infobar_content_area.add (decrypt_description);
+
         content_area.valign = Gtk.Align.FILL;
         content_area.column_homogeneous = true;
-        content_area.attach (artwork, 0, 0, 1, 1);
-        content_area.attach (type_label, 0, 1, 1, 1);
-        content_area.attach (type_scrolled, 1, 0, 1, 1);
+        content_area.attach (decrypt_infobar, 0, 0, 2, 1);
+        content_area.attach (artwork,         0, 1, 1, 2);
+        content_area.attach (type_label,      1, 1);
+        content_area.attach (type_scrolled,   1, 2);
 
         var back_button = new Gtk.Button.with_label (_("Back"));
         back_button.clicked.connect (() => ((Gtk.Stack) get_parent ()).visible_child = previous_view);
@@ -103,6 +119,8 @@ public class Installer.TryInstallView : AbstractInstallerView {
         type_grid.add (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
         type_grid.add (custom_button);
 
+        ulong next_button_handler_id;
+
         demo_button.key_press_event.connect ((event) => handle_key_press (demo_button, event));
         demo_button.clicked.connect (() => {
             if (demo_button.active) {
@@ -114,10 +132,11 @@ public class Installer.TryInstallView : AbstractInstallerView {
 
                 next_button.label = demo_button.type_title;
                 next_button.sensitive = true;
-                next_button.clicked.connect (Utils.demo_mode);
+                next_button_handler_id = next_button.clicked.connect (Utils.demo_mode);
             } else {
                 next_button.sensitive = false;
                 next_button.label = _("Next");
+                next_button.disconnect (next_button_handler_id);
             }
         });
 
@@ -132,10 +151,11 @@ public class Installer.TryInstallView : AbstractInstallerView {
 
                 next_button.label = clean_install_button.type_title;
                 next_button.sensitive = true;
-                next_button.clicked.connect (() => next_step ());
+                next_button_handler_id = next_button.clicked.connect (() => next_step ());
             } else {
                 next_button.sensitive = false;
                 next_button.label = _("Next");
+                next_button.disconnect (next_button_handler_id);
             }
         });
 
@@ -150,14 +170,29 @@ public class Installer.TryInstallView : AbstractInstallerView {
 
                 next_button.label = custom_button.type_title;
                 next_button.sensitive = true;
-                next_button.clicked.connect (() => custom_step ());
+                next_button_handler_id = next_button.clicked.connect (() => custom_step ());
             } else {
                 next_button.sensitive = false;
                 next_button.label = _("Next");
+                next_button.disconnect (next_button_handler_id);
             }
         });
+
+        decrypt_button.clicked.connect (() => {
+            var decrypt_dialog = new DecryptDialog ();
+            decrypt_dialog.update_list ();
+            decrypt_dialog.transient_for = (Gtk.Window) get_toplevel ();
+            decrypt_dialog.run ();
+        });
+
         show_all ();
+
         clean_install_button.grab_focus ();
+
+        // Hide the info bar if no encrypted partitions are found.
+        if (! InstallOptions.get_default ().contains_luks ()) {
+            decrypt_infobar.visible = false;
+        }
     }
 
     private bool handle_key_press (Gtk.Button button, Gdk.EventKey event) {

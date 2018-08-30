@@ -253,48 +253,17 @@ public class Installer.PartitioningView : AbstractInstallerView {
     }
 
     private bool decrypt (string device, string pv, string password, DecryptMenu menu) {
-        string error_msg;
-        if (Distinst.device_map_exists (pv)) {
-            error_msg = _("Device name already exists.");
-        } else {
-            int result = disks.decrypt_partition (device, Distinst.LvmEncryption () {
-                physical_volume = pv,
-                password = password,
-                keydata = null
-            });
-
-            switch (result) {
-                case 0:
-                    unowned Distinst.LvmDevice disk = disks.get_logical_device_within_pv (pv);
-                    add_logical_disk (disk);
-                    luks.add (new LuksCredentials (device, pv, password));
-                    return true;
-                case 1:
-                    error_msg = _("An input was null.");
-                    break;
-                case 2:
-                    error_msg = _("An input was not valid UTF-8.");
-                    break;
-                case 3:
-                    error_msg = _("Either a password or keydata string must be supplied.");
-                    break;
-                case 4:
-                    error_msg = _("Failed to decrypt due to invalid password.");
-                    break;
-                case 5:
-                    error_msg = _("The decrypted partition does not have a LVM volume on it.");
-                    break;
-                case 6:
-                    error_msg = _("Unable to locate LUKS partition at %s.").printf (device);
-                    break;
-                default:
-                    critical ("decrypt: unhandled error value: %d", result);
-                    return false;
-            }
+        try {
+            Utils.decrypt_partition (disks, device, pv, password);
+        } catch (Error e) {
+            menu.set_error (e.message);
+            return false;
         }
 
-        menu.set_error (error_msg);
-        return false;
+        unowned Distinst.LvmDevice disk = disks.get_logical_device_within_pv (pv);
+        add_logical_disk (disk);
+        luks.add (new LuksCredentials (device, pv, password));
+        return true;
     }
 
     private void set_mount (Mount mount) throws GLib.Error {

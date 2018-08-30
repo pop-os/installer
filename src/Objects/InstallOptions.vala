@@ -27,6 +27,10 @@ public class InstallOptions : GLib.Object {
     private Distinst.Disks disks;
     public Distinst.InstallOption? selected_option;
 
+    private string[] unlocked_devices;
+    private string[] unlocked_pvs;
+    private string[] luks_passwords;
+
     public static unowned InstallOptions get_default () {
         if (_options_object == null || _options_object.disks_moved) {
             _options_object = new InstallOptions ();
@@ -48,8 +52,45 @@ public class InstallOptions : GLib.Object {
         return null != recovery && recovery.get_oem_mode ();
     }
 
+    public bool is_unlocked (string path) {
+        foreach (var dev in unlocked_devices) {
+            if (dev == path) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public bool contains_luks () {
         return disks.contains_luks ();
+    }
+
+    public void decrypt(string device, string pv, string pass) throws GLib.Error {
+        try {
+            Utils.decrypt_partition (disks, device, pv, pass);
+        } catch (Error e) {
+            throw e;
+        }
+
+        // Record the password which succeeded in decrypting the device.
+        set_luks_pass (device, pv, pass);
+
+        // Update the list of available options.
+        _options = new Distinst.InstallOptions (disks, minimum_size);
+        selected_option = null;
+
+        foreach (var option in _options.get_refresh_options ()) {
+            var os = Utils.string_from_utf8 (option.get_os_name ());
+            var root_part = Utils.string_from_utf8 (option.get_root_part ());
+            stderr.printf ("found %s on %s\n", os, root_part);
+        }
+    }
+
+    public void set_luks_pass (string device, string pv, string pass) {
+        unlocked_devices += device;
+        unlocked_pvs += pv;
+        luks_passwords += pass;
     }
 
     public unowned Distinst.InstallOptions get_options () {

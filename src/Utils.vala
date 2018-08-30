@@ -25,6 +25,48 @@ namespace Utils {
         return (owned) builder.str;
     }
 
+    public void decrypt_partition (unowned Distinst.Disks disks, string device, string pv, string password) throws GLib.IOError {
+        string error_msg;
+        if (Distinst.device_map_exists (pv)) {
+            error_msg = _("Device name already exists.");
+        } else {
+            int result = disks.decrypt_partition (device, Distinst.LvmEncryption () {
+                physical_volume = pv,
+                password = password,
+                keydata = null
+            });
+
+            switch (result) {
+                case 0:
+                    return;
+                case 1:
+                    error_msg = _("An input was null.");
+                    break;
+                case 2:
+                    error_msg = _("An input was not valid UTF-8.");
+                    break;
+                case 3:
+                    error_msg = _("Either a password or keydata string must be supplied.");
+                    break;
+                case 4:
+                    error_msg = _("Failed to decrypt due to invalid password.");
+                    break;
+                case 5:
+                    error_msg = _("The decrypted partition does not have a LVM volume on it.");
+                    break;
+                case 6:
+                    error_msg = _("Unable to locate LUKS partition at %s.").printf (device);
+                    break;
+                default:
+                    error_msg = _("Fatal error occurred: check logs");
+                    critical ("decrypt: unhandled error value: %d", result);
+                    break;
+            }
+        }
+
+        throw new GLib.IOError.FAILED (error_msg);
+    }
+
     private struct OsRelease {
         public string pretty_name;
 
