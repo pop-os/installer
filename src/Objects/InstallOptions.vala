@@ -27,9 +27,9 @@ public class InstallOptions : GLib.Object {
     private Distinst.Disks disks;
     public Distinst.InstallOption? selected_option;
 
-    private string[] unlocked_devices;
-    private string[] unlocked_pvs;
-    private string[] luks_passwords;
+    private Gee.ArrayList<string> unlocked_devices;
+    private Gee.ArrayList<string> unlocked_pvs;
+    private Gee.ArrayList<string> luks_passwords;
 
     public static unowned InstallOptions get_default () {
         if (_options_object == null || _options_object.disks_moved) {
@@ -73,26 +73,23 @@ public class InstallOptions : GLib.Object {
             throw e;
         }
 
+        layout_hash = Distinst.device_layout_hash ();
+
         // Record the password which succeeded in decrypting the device.
         set_luks_pass (device, pv, pass);
 
         // Update the list of available options.
         _options = new Distinst.InstallOptions (disks, minimum_size);
         selected_option = null;
-
-        foreach (var option in _options.get_refresh_options ()) {
-            var os = Utils.string_from_utf8 (option.get_os_name ());
-            var root_part = Utils.string_from_utf8 (option.get_root_part ());
-            stderr.printf ("found %s on %s\n", os, root_part);
-        }
     }
 
     public void set_luks_pass (string device, string pv, string pass) {
-        unlocked_devices += device;
-        unlocked_pvs += pv;
-        luks_passwords += pass;
+        unlocked_devices.add(device);
+        unlocked_pvs.add(pv);
+        luks_passwords.add(pass);
     }
 
+    // Get the current set of installation options.
     public unowned Distinst.InstallOptions get_options () {
         if (null == _options) {
             disks = Distinst.Disks.probe ();
@@ -104,26 +101,32 @@ public class InstallOptions : GLib.Object {
         return _options;
     }
 
-    // Returns an updated option if the device layout has changed.
+    // Get the current set of installation options, and update the options if disk changes occurred.
     public unowned Distinst.InstallOptions get_updated_options () {
         var new_hash = Distinst.device_layout_hash ();
         if (layout_hash != new_hash) {
             layout_hash = new_hash;
             disks = Distinst.Disks.probe ();
+            
             _options = new Distinst.InstallOptions (disks, minimum_size);
             selected_option = null;
+
+            unlocked_devices.clear ();
+            unlocked_pvs.clear ();
+            luks_passwords.clear ();
         }
 
         return _options;
     }
 
-    public Distinst.Disks get_disks () {
-        disks_moved = true;
-        return (owned) disks;
-    }
-
     public unowned Distinst.Disks borrow_disks () {
         return disks;
+    }
+
+    // Transder ownership of the disks to the caller.
+    public Distinst.Disks take_disks () {
+        disks_moved = true;
+        return (owned) disks;
     }
 
     public unowned Distinst.InstallOption? get_selected_option () {

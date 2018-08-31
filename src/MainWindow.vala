@@ -21,16 +21,17 @@
 public class Installer.MainWindow : Gtk.Dialog {
     private Gtk.Stack stack;
 
-    private LanguageView language_view;
-    private KeyboardLayoutView keyboard_layout_view;
-    private TryInstallView try_install_view;
-    private Installer.CheckView check_view;
     private DiskView disk_view;
-    private PartitioningView partitioning_view;
-    private ProgressView progress_view;
-    private SuccessView success_view;
     private EncryptView encrypt_view;
     private ErrorView error_view;
+    private Installer.CheckView check_view;
+    private KeyboardLayoutView keyboard_layout_view;
+    private LanguageView language_view;
+    private PartitioningView partitioning_view;
+    private ProgressView progress_view;
+    private RefreshView refresh_view;
+    private SuccessView success_view;
+    private TryInstallView try_install_view;
     private bool check_ignored = false;
 
     private uint64 minimum_disk_size;
@@ -129,6 +130,19 @@ public class Installer.MainWindow : Gtk.Dialog {
 
         try_install_view.custom_step.connect (() => load_partitioning_view ());
         try_install_view.next_step.connect (() => load_disk_view ());
+        try_install_view.refresh_step.connect (() => load_refresh_view ());
+    }
+
+    private void load_refresh_view () {
+        if (refresh_view == null) {
+            refresh_view = new RefreshView ();
+            refresh_view.previous_view = try_install_view;
+            refresh_view.next_step.connect (load_progress_view);
+            stack.add (refresh_view);
+        }
+        
+        stack.visible_child = refresh_view;
+        refresh_view.update_options ();
     }
 
     private void set_check_view_visible (bool show) {

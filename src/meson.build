@@ -23,6 +23,7 @@ vala_files = [
     'Views/PartitioningView.vala',
     'Views/ProgressView.vala',
     'Views/TryInstallView.vala',
+    'Views/RefreshView.vala',
     'Views/SuccessView.vala',
     'Widgets/DecryptMenu.vala',
     'Widgets/DiskBar.vala',

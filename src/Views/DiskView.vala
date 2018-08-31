@@ -85,8 +85,8 @@ public class Installer.DiskView : AbstractInstallerView {
         artwork.get_style_context ().add_class ("artwork");
         artwork.vexpand = true;
 
-        content_area.attach (artwork, 0, 0, 1, 1);
-        content_area.attach (install_label, 0, 1, 1, 1);
+        content_area.attach (artwork, 0, 0);
+        content_area.attach (install_label, 0, 1);
         content_area.attach (load_stack, 1, 0, 1, 2);
 
         next_button = new Gtk.Button.with_label (_("Erase and Install"));

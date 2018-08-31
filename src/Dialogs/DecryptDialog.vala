@@ -67,7 +67,7 @@ public class DecryptDialog: Gtk.Dialog {
         var pass_label = new Gtk.Label (_("Password:"));
         pass_label.halign = Gtk.Align.END;
 
-        pass_entry = new Gtk.Entry ();
+        var pass_entry = new Gtk.Entry ();
         pass_entry.hexpand = true;
         pass_entry.input_purpose = Gtk.InputPurpose.PASSWORD;
         pass_entry.visibility = false;
@@ -75,7 +75,7 @@ public class DecryptDialog: Gtk.Dialog {
         var name_label = new Gtk.Label (_("Device name:"));
         name_label.halign = Gtk.Align.END;
 
-        name_entry = new Gtk.Entry ();
+        var name_entry = new Gtk.Entry ();
         name_entry.hexpand = true;
         name_entry.text = "data"; // Set a sane default
 
@@ -127,6 +127,9 @@ public class DecryptDialog: Gtk.Dialog {
                 stderr.printf ("failed to decrypt: %s\n", e.message);
                 return;
             }
+
+            response (Gtk.ResponseType.DELETE_EVENT);
+            destroy ();
         });
 
         var action_area = get_action_area ();
@@ -144,7 +147,6 @@ public class DecryptDialog: Gtk.Dialog {
             foreach (unowned Gtk.Widget widget in inner_grid.get_children ()) {
                 if (widget is Gtk.Label) {
                     this.selected_device = ((Gtk.Label) widget).get_label ();
-                    stderr.printf ("selected device: %s\n", selected_device);
                     break;
                 }
             }
@@ -167,12 +169,9 @@ public class DecryptDialog: Gtk.Dialog {
             cancel_button.show ();
             select_button.show ();
         });
-
-        unlock_button.clicked.connect (() => destroy ());
     }
 
     public void update_list () {
-        stderr.printf("updating partition list\n");
         this.partition_list.get_children ().foreach ((child) => child.destroy ());
         var options = InstallOptions.get_default ();
 

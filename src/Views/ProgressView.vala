@@ -160,7 +160,7 @@ public class ProgressView : AbstractInstallerView {
                     break;
             }
 
-            disks = options.get_disks ();
+            disks = options.take_disks ();
             var result = option.apply (disks);
             if (result != 0) {
                 on_error ();

@@ -19,6 +19,7 @@
 public class Installer.TryInstallView : AbstractInstallerView {
     public signal void custom_step ();
     public signal void next_step ();
+    public signal void refresh_step ();
 
     private Gtk.Button next_button;
 
@@ -105,6 +106,12 @@ public class Installer.TryInstallView : AbstractInstallerView {
             _("Erase everything and install a fresh copy of %s.").printf (Utils.get_pretty_name ())
         );
 
+        var refresh_install_button = new InstallTypeButton (
+            _("Refresh Install"),
+            "gcleaner",
+            _("Reinstall while keeping user accounts and files")
+        );
+
         var custom_button = new InstallTypeButton (
             _("Custom (Advanced)"),
             "disk-utility",
@@ -116,6 +123,7 @@ public class Installer.TryInstallView : AbstractInstallerView {
 
         type_grid.add (demo_button);
         type_grid.add (clean_install_button);
+        type_grid.add (refresh_install_button);
         type_grid.add (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
         type_grid.add (custom_button);
 
@@ -159,6 +167,25 @@ public class Installer.TryInstallView : AbstractInstallerView {
             }
         });
 
+        refresh_install_button.key_press_event.connect ((event) => handle_key_press (refresh_install_button, event));
+        refresh_install_button.clicked.connect (() => {
+            if (refresh_install_button.active) {
+                type_grid.get_children ().foreach ((child) => {
+                    if (child is Gtk.ToggleButton) {
+                        ((Gtk.ToggleButton)child).active = child == refresh_install_button;
+                    }
+                });
+
+                next_button.label = refresh_install_button.type_title;
+                next_button.sensitive = true;
+                next_button_handler_id = next_button.clicked.connect (() => refresh_step ());
+            } else {
+                next_button.sensitive = false;
+                next_button.label = _("Next");
+                next_button.disconnect (next_button_handler_id);
+            }
+        });
+
         custom_button.key_press_event.connect ((event) => handle_key_press (custom_button, event));
         custom_button.clicked.connect (() => {
             if (custom_button.active) {
@@ -178,11 +205,20 @@ public class Installer.TryInstallView : AbstractInstallerView {
             }
         });
 
+        var options = InstallOptions.get_default ();
+
         decrypt_button.clicked.connect (() => {
             var decrypt_dialog = new DecryptDialog ();
             decrypt_dialog.update_list ();
             decrypt_dialog.transient_for = (Gtk.Window) get_toplevel ();
             decrypt_dialog.run ();
+
+            // The dialog will respond with a delete event once it has decrypted a LUKS partition.
+            decrypt_dialog.response.connect((resp) => {
+                if (resp == Gtk.ResponseType.DELETE_EVENT) {
+                    refresh_install_button.visible = options.get_options ().has_refresh_options ();
+                }
+            });
         });
 
         show_all ();
@@ -190,9 +226,9 @@ public class Installer.TryInstallView : AbstractInstallerView {
         clean_install_button.grab_focus ();
 
         // Hide the info bar if no encrypted partitions are found.
-        if (! InstallOptions.get_default ().contains_luks ()) {
-            decrypt_infobar.visible = false;
-        }
+        decrypt_infobar.visible = options.contains_luks ();
+
+        refresh_install_button.visible = options.get_options ().has_refresh_options ();
     }
 
     private bool handle_key_press (Gtk.Button button, Gdk.EventKey event) {
