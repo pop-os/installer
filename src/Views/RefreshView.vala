@@ -15,6 +15,10 @@ public class Installer.RefreshView : AbstractInstallerView {
         title.valign = Gtk.Align.START;
         title.get_style_context ().add_class ("h2");
 
+        var description = new Gtk.Label (_("Perform a new installation over an existing Linux install; retaining user accounts and files."));
+        description.use_markup = true;
+        description.halign = Gtk.Align.CENTER;
+
         refresh_list = new Gtk.Grid ();
         refresh_list.expand = true;
 
@@ -39,8 +43,9 @@ public class Installer.RefreshView : AbstractInstallerView {
         action_area.add (next_button);
 
         content_area.attach (title, 0, 0);
-        content_area.attach (scrolled_list, 0, 1);
-        content_area.attach (retain_old, 0, 2);
+        content_area.attach (description, 0, 1);
+        content_area.attach (scrolled_list, 0, 2);
+        content_area.attach (retain_old, 0, 3);
 
         this.margin_start = 48;
         this.margin_end = 48;
