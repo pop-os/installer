@@ -66,6 +66,7 @@ public class Installer.TryInstallView : AbstractInstallerView {
         var infobar_content_area = decrypt_infobar.get_content_area ();
         infobar_content_area.add (decrypt_description);
 
+        content_area.margin = 0;
         content_area.valign = Gtk.Align.FILL;
         content_area.column_homogeneous = true;
         content_area.attach (decrypt_infobar, 0, 0, 2, 1);

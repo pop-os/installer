@@ -97,6 +97,7 @@ public class DecryptDialog: Gtk.Dialog {
         stack.add (entry_grid);
 
         var grid = new Gtk.Grid ();
+        grid.margin = 6;
         grid.column_spacing = 12;
         grid.margin_start = grid.margin_end = 12;
         grid.attach (overlay,         0, 0, 1, 2);
@@ -104,7 +105,9 @@ public class DecryptDialog: Gtk.Dialog {
         grid.attach (secondary_label, 1, 1);
         grid.attach (stack,           1, 2);
         grid.show_all ();
-        get_content_area ().add (grid);
+
+        var content = get_content_area ();
+        content.add (grid);
 
         var cancel_button = (Gtk.Button) add_button (_("Cancel"), Gtk.ResponseType.CANCEL);
 
@@ -134,7 +137,6 @@ public class DecryptDialog: Gtk.Dialog {
 
         var action_area = get_action_area ();
         action_area.margin = 6;
-        action_area.margin_top = 12;
 
         set_keep_above (true);
 

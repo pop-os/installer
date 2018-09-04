@@ -1,7 +1,7 @@
 public class Installer.RefreshView : AbstractInstallerView {
     public signal void next_step ();
 
-    private Gtk.ListBox refresh_list;
+    private Gtk.Grid refresh_list;
     private Gtk.Button next_button;
 
     public RefreshView () {
@@ -14,7 +14,7 @@ public class Installer.RefreshView : AbstractInstallerView {
         title.valign = Gtk.Align.START;
         title.get_style_context ().add_class ("h2");
 
-        refresh_list = new Gtk.ListBox ();
+        refresh_list = new Gtk.Grid ();
         refresh_list.expand = true;
 
         var scrolled_list = new Gtk.ScrolledWindow (null, null);
@@ -30,6 +30,9 @@ public class Installer.RefreshView : AbstractInstallerView {
 
         content_area.attach (title, 0, 0);
         content_area.attach (scrolled_list, 0, 1);
+
+        this.margin_start = 48;
+        this.margin_end = 48;
 
         show_all ();
     }
@@ -47,15 +50,18 @@ public class Installer.RefreshView : AbstractInstallerView {
 
             unowned Distinst.Partition? partition = disks.get_partition_by_uuid (uuid);
             if (partition == null) {
-                // TODO: Handle this error
-                stderr.printf ("did not find partition\n");
+                stderr.printf ("did not find partition with UUID \"%s\"\n", uuid);
+                continue;
             }
 
             var device_path = Utils.string_from_utf8 (partition.get_device_path ());
-            var label = new Gtk.Label (_("Install to %s (%s) at %s").printf (os, version, device_path));
+            var label = new Gtk.Label (_("%s (%s) at %s").printf (os, version, device_path));
             label.get_style_context ().add_class (Gtk.STYLE_CLASS_DIM_LABEL);
 
             var button = new Gtk.ToggleButton ();
+            button.margin = 6;
+            button.hexpand = true;
+            button.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
             button.add(label);
             button.clicked.connect (() => {
                 if (button.active) {
@@ -71,11 +77,12 @@ public class Installer.RefreshView : AbstractInstallerView {
 
                     next_button.sensitive = true;
                 } else {
+
                     next_button.sensitive = false;
                 }
             });
 
-            refresh_list.insert (button, -1);
+            refresh_list.add (button);
         }
 
         refresh_list.show_all ();

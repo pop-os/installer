@@ -51,7 +51,7 @@ public class Installer.DiskButton : Gtk.ToggleButton {
         size_label.get_style_context ().add_class (Gtk.STYLE_CLASS_DIM_LABEL);
 
         var grid = new Gtk.Grid ();
-        grid.margin = 6;
+        grid.margin = 12;
         grid.column_spacing = 6;
         grid.row_spacing = 6;
         grid.orientation = Gtk.Orientation.VERTICAL;
