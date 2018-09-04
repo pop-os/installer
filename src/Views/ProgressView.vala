@@ -144,9 +144,12 @@ public class ProgressView : AbstractInstallerView {
 
             switch (option.tag) {
                 case Distinst.InstallOptionVariant.REFRESH:
-                    // NOTE: Is there a use case for refreshing a system without retaining files?
                     unowned Distinst.RefreshOption refresh = (Distinst.RefreshOption*) option.option;
                     config.old_root = Utils.string_from_utf8 (refresh.get_root_part ());
+
+                    if (current_config.retain_old) {
+                        config.flags |= Distinst.KEEP_OLD_ROOT;
+                    }
 
                     break;
                 case Distinst.InstallOptionVariant.RECOVERY:

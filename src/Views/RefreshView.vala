@@ -1,8 +1,9 @@
 public class Installer.RefreshView : AbstractInstallerView {
-    public signal void next_step ();
+    public signal void next_step (bool retain_old);
 
     private Gtk.Grid refresh_list;
     private Gtk.Button next_button;
+    private Gtk.CheckButton retain_old;
 
     public RefreshView () {
         Object (cancellable: true);
@@ -22,14 +23,24 @@ public class Installer.RefreshView : AbstractInstallerView {
         scrolled_list.hscrollbar_policy = Gtk.PolicyType.NEVER;
         scrolled_list.add (refresh_list);
 
+        var retain_label = new Gtk.Label (_("<b>Keep backup of original install at /linux.old</b>\nThis can be used to restore the system in the event that the installer fails."));
+        retain_label.use_markup = true;
+
+        retain_old = new Gtk.CheckButton ();
+        retain_old.add (retain_label);
+        retain_old.hexpand = true;
+        retain_old.halign = Gtk.Align.START;
+        retain_old.sensitive = false;
+
         next_button = new Gtk.Button.with_label (_("Refresh Install"));
         next_button.get_style_context ().add_class (Gtk.STYLE_CLASS_DESTRUCTIVE_ACTION);
         next_button.sensitive = false;
-        next_button.clicked.connect (() => next_step ());
+        next_button.clicked.connect (() => next_step (retain_old.active));
         action_area.add (next_button);
 
         content_area.attach (title, 0, 0);
         content_area.attach (scrolled_list, 0, 1);
+        content_area.attach (retain_old, 0, 2);
 
         this.margin_start = 48;
         this.margin_end = 48;
@@ -58,6 +69,8 @@ public class Installer.RefreshView : AbstractInstallerView {
             var label = new Gtk.Label (_("%s (%s) at %s").printf (os, version, device_path));
             label.get_style_context ().add_class (Gtk.STYLE_CLASS_DIM_LABEL);
 
+            bool can_retain_old = option.can_retain_old ();
+
             var button = new Gtk.ToggleButton ();
             button.margin = 6;
             button.hexpand = true;
@@ -76,9 +89,10 @@ public class Installer.RefreshView : AbstractInstallerView {
                     };
 
                     next_button.sensitive = true;
+                    retain_old.sensitive = can_retain_old;
                 } else {
-
                     next_button.sensitive = false;
+                    retain_old.sensitive = false;
                 }
             });
 

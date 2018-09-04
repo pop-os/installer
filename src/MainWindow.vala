@@ -137,7 +137,10 @@ public class Installer.MainWindow : Gtk.Dialog {
         if (refresh_view == null) {
             refresh_view = new RefreshView ();
             refresh_view.previous_view = try_install_view;
-            refresh_view.next_step.connect (load_progress_view);
+            refresh_view.next_step.connect ((retain_old) => {
+                Configuration.get_default ().retain_old = retain_old;
+                load_progress_view ();
+            });
             refresh_view.cancel.connect (() => {
                 stack.visible_child = try_install_view;
             });
