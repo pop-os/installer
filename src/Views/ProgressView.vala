@@ -19,11 +19,14 @@
 public class ProgressView : AbstractInstallerView {
     public signal void on_success ();
     public signal void on_error ();
+    public signal void request_keep_backup (Distinst.Installer installer);
 
     private Gtk.ProgressBar progressbar;
     private Gtk.Label progressbar_label;
     private const int NUM_STEP = 4;
     private Terminal terminal;
+
+    private Distinst.Installer installer;
 
     construct {
         var logo = new Gtk.Image ();
@@ -111,9 +114,10 @@ public class ProgressView : AbstractInstallerView {
     }
 
     public void real_installation () {
-        var installer = new Distinst.Installer ();
+        installer = new Distinst.Installer ();
         installer.on_error (installation_error_callback);
         installer.on_status (installation_status_callback);
+        installer.on_keep_backup_request (backup_request_callback);
 
         var config = Distinst.Config ();
         config.flags = Distinst.MODIFY_BOOT_ORDER | Distinst.INSTALL_HARDWARE_SUPPORT;
@@ -126,7 +130,6 @@ public class ProgressView : AbstractInstallerView {
         unowned Configuration current_config = Configuration.get_default ();
         unowned InstallOptions options = InstallOptions.get_default ();
 
-        stderr.printf ("locale: %s\n", current_config.get_locale ());
         config.lang = current_config.get_locale ();
         config.keyboard_layout = current_config.keyboard_layout;
         config.keyboard_model = null;
@@ -146,7 +149,6 @@ public class ProgressView : AbstractInstallerView {
                 case Distinst.InstallOptionVariant.REFRESH:
                     unowned Distinst.RefreshOption refresh = (Distinst.RefreshOption*) option.option;
                     config.old_root = Utils.string_from_utf8 (refresh.get_root_part ());
-
                     if (current_config.retain_old) {
                         config.flags |= Distinst.KEEP_OLD_ROOT;
                     }
@@ -285,6 +287,10 @@ public class ProgressView : AbstractInstallerView {
             installation_status_callback (status);
             GLib.Thread.usleep (10000);
         }
+    }
+
+    private void backup_request_callback () {
+        request_keep_backup (installer);
     }
 
     private void installation_status_callback (Distinst.Status status) {

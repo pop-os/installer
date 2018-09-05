@@ -3,7 +3,7 @@ public class Installer.RefreshView : AbstractInstallerView {
 
     private Gtk.Grid refresh_list;
     private Gtk.Button next_button;
-    private Gtk.CheckButton retain_old;
+    private bool retain_old;
 
     public RefreshView () {
         Object (cancellable: true);
@@ -15,9 +15,11 @@ public class Installer.RefreshView : AbstractInstallerView {
         title.valign = Gtk.Align.START;
         title.get_style_context ().add_class ("h2");
 
-        var description = new Gtk.Label (_("Perform a new installation over an existing Linux install; retaining user accounts and files."));
+        var description = new Gtk.Label (_("Perform a new installation over an existing Linux install; retaining user accounts and files.
+<b>Applications installed on the system will not be restored, and thus will require to be reinstalled.</b>"));
         description.use_markup = true;
         description.halign = Gtk.Align.CENTER;
+        description.justify = Gtk.Justification.CENTER;
 
         refresh_list = new Gtk.Grid ();
         refresh_list.expand = true;
@@ -30,22 +32,15 @@ public class Installer.RefreshView : AbstractInstallerView {
         var retain_label = new Gtk.Label (_("<b>Keep backup of original install at /linux.old</b>\nThis can be used to restore the system in the event that the installer fails."));
         retain_label.use_markup = true;
 
-        retain_old = new Gtk.CheckButton ();
-        retain_old.add (retain_label);
-        retain_old.hexpand = true;
-        retain_old.halign = Gtk.Align.START;
-        retain_old.sensitive = false;
-
         next_button = new Gtk.Button.with_label (_("Refresh Install"));
         next_button.get_style_context ().add_class (Gtk.STYLE_CLASS_DESTRUCTIVE_ACTION);
         next_button.sensitive = false;
-        next_button.clicked.connect (() => next_step (retain_old.active));
+        next_button.clicked.connect (() => next_step (retain_old));
         action_area.add (next_button);
 
         content_area.attach (title, 0, 0);
         content_area.attach (description, 0, 1);
         content_area.attach (scrolled_list, 0, 2);
-        content_area.attach (retain_old, 0, 3);
 
         this.margin_start = 48;
         this.margin_end = 48;
@@ -94,10 +89,10 @@ public class Installer.RefreshView : AbstractInstallerView {
                     };
 
                     next_button.sensitive = true;
-                    retain_old.sensitive = can_retain_old;
+                    retain_old = can_retain_old;
                 } else {
                     next_button.sensitive = false;
-                    retain_old.sensitive = false;
+                    retain_old = false;
                 }
             });
 

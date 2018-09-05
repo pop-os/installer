@@ -30,6 +30,7 @@ public class Installer.MainWindow : Gtk.Dialog {
     private PartitioningView partitioning_view;
     private ProgressView progress_view;
     private RefreshView refresh_view;
+    private RequestView request_view;
     private SuccessView success_view;
     private TryInstallView try_install_view;
     private bool check_ignored = false;
@@ -53,10 +54,12 @@ public class Installer.MainWindow : Gtk.Dialog {
 
     construct {
         language_view = new LanguageView ();
+        request_view = new RequestView ();
 
         stack = new Gtk.Stack ();
         stack.transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT;
         stack.add (language_view);
+        stack.add (request_view);
 
         get_content_area ().add (stack);
         get_style_context ().add_class ("os-installer");
@@ -246,6 +249,32 @@ public class Installer.MainWindow : Gtk.Dialog {
         encrypt_view.next_step.connect (() => load_progress_view ());
     }
 
+    private void request_backup (Distinst.Installer installer) {
+        stack.visible_child = request_view;
+        request_view.set_question (
+            _("Installed successfully"),
+            _("The previous install was moved into the <b>/linux.old</b> directory.\nDo you want to keep it?")
+        );
+
+        int answer = 0;
+        new Thread<bool> ("request_keep_backup", () => {
+            AtomicInt.set (ref answer, request_view.recv ());
+            return true;
+        });
+
+        Timeout.add (100, () => {
+            var reply = AtomicInt.get (ref answer);
+
+            if (reply == 0) {
+                return Source.CONTINUE;
+            }
+
+            installer.set_backup_response (reply == 2);
+            stack.visible_child = progress_view;
+            return Source.REMOVE;
+        });
+    }
+
     private void load_progress_view () {
         check_ignored = true;
 
@@ -264,6 +293,8 @@ public class Installer.MainWindow : Gtk.Dialog {
         progress_view.on_error.connect (() => {
             load_error_view (progress_view.get_log ());
         });
+
+        progress_view.request_keep_backup.connect (request_backup);
 
         start_date = new DateTime.now_local ();
         end_date = null;

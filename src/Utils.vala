@@ -25,7 +25,7 @@ namespace Utils {
         return (owned) builder.str;
     }
 
-    public void decrypt_partition (unowned Distinst.Disks disks, string device, string pv, string password) throws GLib.IOError {
+    public void decrypt_partition (Distinst.Disks disks, string device, string pv, string password) throws GLib.IOError {
         string error_msg;
         if (Distinst.device_map_exists (pv)) {
             error_msg = _("Device name already exists.");
