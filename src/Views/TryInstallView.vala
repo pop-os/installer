@@ -116,7 +116,7 @@ public class Installer.TryInstallView : AbstractInstallerView {
         var refresh_install_button = new InstallTypeButton (
             _("Refresh Install"),
             "gcleaner",
-            _("Reinstall while keeping user accounts and files")
+            _("Reinstall while keeping user accounts and files. Applications will need to be reinstalled manually.")
         );
 
         var custom_button = new InstallTypeButton (

@@ -4,6 +4,7 @@ public class Installer.RefreshView : AbstractInstallerView {
     private Gtk.Grid refresh_list;
     private Gtk.Button next_button;
     private bool retain_old;
+    public int noptions = 0;
 
     public RefreshView () {
         Object (cancellable: true);
@@ -48,8 +49,20 @@ public class Installer.RefreshView : AbstractInstallerView {
         show_all ();
     }
 
+    public void select_first_option () {
+        var widget = refresh_list.get_children ().nth_data (0);
+        if (widget is Gtk.Button) {
+            ((Gtk.Button)widget).clicked ();
+            next_button.clicked ();
+        } else {
+            stderr.printf ("select_first_option: not a button\n");
+        }
+        
+    }
+
     public void update_options () {
         refresh_list.get_children ().foreach ((child) => child.destroy());
+        noptions = 0;
 
         var install_options = InstallOptions.get_default ();
         unowned Distinst.Disks disks = install_options.borrow_disks ();
@@ -97,6 +110,7 @@ public class Installer.RefreshView : AbstractInstallerView {
             });
 
             refresh_list.add (button);
+            noptions += 1;
         }
 
         refresh_list.show_all ();

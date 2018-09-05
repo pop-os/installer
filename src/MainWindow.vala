@@ -152,6 +152,11 @@ public class Installer.MainWindow : Gtk.Dialog {
         
         stack.visible_child = refresh_view;
         refresh_view.update_options ();
+
+        // If there's only one option, go ahead and select that option.
+        if (refresh_view.noptions == 1) {
+            refresh_view.select_first_option ();
+        }
     }
 
     private void set_check_view_visible (bool show) {
