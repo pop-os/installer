@@ -19,7 +19,6 @@
 public class ProgressView : AbstractInstallerView {
     public signal void on_success ();
     public signal void on_error ();
-    public signal void request_keep_backup (Distinst.Installer installer);
 
     private Gtk.ProgressBar progressbar;
     private Gtk.Label progressbar_label;
@@ -117,7 +116,6 @@ public class ProgressView : AbstractInstallerView {
         installer = new Distinst.Installer ();
         installer.on_error (installation_error_callback);
         installer.on_status (installation_status_callback);
-        installer.on_keep_backup_request (backup_request_callback);
 
         var config = Distinst.Config ();
         config.flags = Distinst.MODIFY_BOOT_ORDER | Distinst.INSTALL_HARDWARE_SUPPORT;
@@ -287,10 +285,6 @@ public class ProgressView : AbstractInstallerView {
             installation_status_callback (status);
             GLib.Thread.usleep (10000);
         }
-    }
-
-    private void backup_request_callback () {
-        request_keep_backup (installer);
     }
 
     private void installation_status_callback (Distinst.Status status) {
