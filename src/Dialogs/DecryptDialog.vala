@@ -77,7 +77,7 @@ public class DecryptDialog: Gtk.Dialog {
 
         var name_entry = new Gtk.Entry ();
         name_entry.hexpand = true;
-        name_entry.text = "data"; // Set a sane default
+        name_entry.text = "cryptdata"; // Set a sane default
 
         var entry_grid = new Gtk.Grid ();
         entry_grid.column_spacing = 12;

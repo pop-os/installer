@@ -27,9 +27,7 @@ public class InstallOptions : GLib.Object {
     private Distinst.Disks disks;
     public Distinst.InstallOption? selected_option;
 
-    private Gee.ArrayList<string> unlocked_devices;
-    private Gee.ArrayList<string> unlocked_pvs;
-    private Gee.ArrayList<string> luks_passwords;
+    private Gee.ArrayList<string> unlocked_devices { get; set; default = new Gee.ArrayList<string> (); }
 
     public static unowned InstallOptions get_default () {
         if (_options_object == null || _options_object.disks_moved) {
@@ -75,18 +73,12 @@ public class InstallOptions : GLib.Object {
 
         layout_hash = Distinst.device_layout_hash ();
 
-        // Record the password which succeeded in decrypting the device.
-        set_luks_pass (device, pv, pass);
+        // Record the name of the device that was unlocked.
+        unlocked_devices.add(device);
 
         // Update the list of available options.
         _options = new Distinst.InstallOptions (disks, minimum_size);
         selected_option = null;
-    }
-
-    public void set_luks_pass (string device, string pv, string pass) {
-        unlocked_devices.add(device);
-        unlocked_pvs.add(pv);
-        luks_passwords.add(pass);
     }
 
     // Get the current set of installation options.
@@ -112,8 +104,6 @@ public class InstallOptions : GLib.Object {
             selected_option = null;
 
             unlocked_devices.clear ();
-            unlocked_pvs.clear ();
-            luks_passwords.clear ();
         }
 
         return _options;

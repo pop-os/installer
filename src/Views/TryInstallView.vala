@@ -66,13 +66,19 @@ public class Installer.TryInstallView : AbstractInstallerView {
         var infobar_content_area = decrypt_infobar.get_content_area ();
         infobar_content_area.add (decrypt_description);
 
+        var grid = new Gtk.Grid ();
+        grid.margin = 12;
+        grid.valign = Gtk.Align.FILL;
+        grid.column_homogeneous = true;
+        grid.attach (artwork,       0, 1, 1, 2);
+        grid.attach (type_label,    1, 1);
+        grid.attach (type_scrolled, 1, 2);
+        
         content_area.margin = 0;
         content_area.valign = Gtk.Align.FILL;
         content_area.column_homogeneous = true;
-        content_area.attach (decrypt_infobar, 0, 0, 2, 1);
-        content_area.attach (artwork,         0, 1, 1, 2);
-        content_area.attach (type_label,      1, 1);
-        content_area.attach (type_scrolled,   1, 2);
+        content_area.attach (decrypt_infobar, 0, 0); 
+        content_area.attach (grid, 0, 1);
 
         var back_button = new Gtk.Button.with_label (_("Back"));
         back_button.clicked.connect (() => ((Gtk.Stack) get_parent ()).visible_child = previous_view);
@@ -218,6 +224,15 @@ public class Installer.TryInstallView : AbstractInstallerView {
             decrypt_dialog.response.connect((resp) => {
                 if (resp == Gtk.ResponseType.DELETE_EVENT) {
                     refresh_install_button.visible = options.get_options ().has_refresh_options ();
+                    var nlocked = 0;
+                    foreach (unowned Distinst.Partition partition in options.borrow_disks ().get_encrypted_partitions ()) {
+                        string path = Utils.string_from_utf8 (partition.get_device_path ());
+                        if (! options.is_unlocked (path)) {
+                            nlocked += 1;
+                        }
+                    }
+
+                    decrypt_infobar.visible = nlocked != 0;
                 }
             });
         });
