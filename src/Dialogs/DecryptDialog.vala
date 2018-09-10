@@ -90,24 +90,56 @@ public class DecryptDialog: Gtk.Dialog {
         entry_grid.attach (name_label, 0, 1);
         entry_grid.attach (name_entry, 1, 1);
 
-        var stack = new Gtk.Stack ();
-        stack.height_request = 128;
-        stack.transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT;
-        stack.add (partition_list);
-        stack.add (entry_grid);
+        var error_image = new Gtk.Image.from_icon_name ("dialog-error", Gtk.IconSize.DIALOG);
+        error_image.valign = Gtk.Align.START;
+        error_image.width_request = 60;
 
-        var grid = new Gtk.Grid ();
-        grid.margin = 6;
-        grid.column_spacing = 12;
-        grid.margin_start = grid.margin_end = 12;
-        grid.attach (overlay,         0, 0, 1, 2);
-        grid.attach (primary_label,   1, 0);
-        grid.attach (secondary_label, 1, 1);
-        grid.attach (stack,           1, 2);
-        grid.show_all ();
+        var error_title = new Gtk.Label ("Decryption Error");
+        error_title.halign = Gtk.Align.START;
+        error_title.valign = Gtk.Align.END;
+        error_title.get_style_context ().add_class (Granite.STYLE_CLASS_PRIMARY_LABEL);
+
+        var error_label = new Gtk.Label (null);
+        error_label.expand = true;
+        error_label.max_width_chars = 40;
+        error_label.valign = Gtk.Align.START;
+        error_label.wrap = true;
+        error_label.xalign = 0;
+
+        var error_grid = new Gtk.Grid ();
+        error_grid.column_spacing = 12;
+        error_grid.row_spacing = 6;
+        error_grid.margin = 6;
+        error_grid.attach (error_image,  0, 0, 1, 2);
+        error_grid.attach (error_title,  1, 0);
+        error_grid.attach (error_label,  1, 1);
+        error_grid.show_all ();
+
+        var inner_stack = new Gtk.Stack ();
+        inner_stack.height_request = 128;
+        inner_stack.transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT;
+        inner_stack.add (partition_list);
+        inner_stack.add (entry_grid);
+
+        var inner_grid = new Gtk.Grid ();
+        inner_grid.margin = 6;
+        inner_grid.column_spacing = 12;
+        inner_grid.row_spacing = 6;
+        inner_grid.margin_start = inner_grid.margin_end = 12;
+        inner_grid.attach (overlay,         0, 0, 1, 2);
+        inner_grid.attach (primary_label,   1, 0);
+        inner_grid.attach (secondary_label, 1, 1);
+        inner_grid.attach (inner_stack,     1, 2);
+        inner_grid.show_all ();
+
+        var outer_stack = new Gtk.Stack ();
+        outer_stack.transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT;
+        outer_stack.add (inner_grid);
+        outer_stack.add (error_grid);
+        outer_stack.show_all ();
 
         var content = get_content_area ();
-        content.add (grid);
+        content.add (outer_stack);
 
         var cancel_button = (Gtk.Button) add_button (_("Cancel"), Gtk.ResponseType.CANCEL);
 
@@ -127,7 +159,9 @@ public class DecryptDialog: Gtk.Dialog {
             try {
                 InstallOptions.get_default ().decrypt (selected_device, pv, pass);
             } catch (Error e) {
-                stderr.printf ("failed to decrypt: %s\n", e.message);
+                error_label.label = e.message;
+                outer_stack.visible_child = error_grid;
+                unlock_button.hide ();
                 return;
             }
 
@@ -145,8 +179,8 @@ public class DecryptDialog: Gtk.Dialog {
                 return;
             }
 
-            unowned Gtk.Grid inner_grid = (Gtk.Grid) row.get_children ().nth_data (0);
-            foreach (unowned Gtk.Widget widget in inner_grid.get_children ()) {
+            unowned Gtk.Grid pgrid = (Gtk.Grid) row.get_children ().nth_data (0);
+            foreach (unowned Gtk.Widget widget in pgrid.get_children ()) {
                 if (widget is Gtk.Label) {
                     this.selected_device = ((Gtk.Label) widget).get_label ();
                     break;
@@ -157,7 +191,7 @@ public class DecryptDialog: Gtk.Dialog {
         cancel_button.clicked.connect (() => destroy ());
 
         select_button.clicked.connect (() => {
-            stack.visible_child = entry_grid;
+            inner_stack.visible_child = entry_grid;
             cancel_button.hide ();
             select_button.hide ();
             back_button.show ();
@@ -165,14 +199,18 @@ public class DecryptDialog: Gtk.Dialog {
         });
 
         back_button.clicked.connect (() => {
-            stack.visible_child = partition_list;
-            back_button.hide ();
-            unlock_button.hide ();
-            cancel_button.show ();
-            select_button.show ();
+            if (outer_stack.visible_child == error_grid) {
+                outer_stack.visible_child = inner_grid;
+                unlock_button.show ();
+            } else {
+                inner_stack.visible_child = partition_list;
+                back_button.hide ();
+                unlock_button.hide ();
+                cancel_button.show ();
+                select_button.show ();
+            }
         });
     }
-
     public void update_list () {
         this.partition_list.get_children ().foreach ((child) => child.destroy ());
         var options = InstallOptions.get_default ();
