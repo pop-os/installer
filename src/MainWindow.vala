@@ -38,6 +38,8 @@ public class Installer.MainWindow : Gtk.Dialog {
     private DateTime? start_date = null;
     private DateTime? end_date = null;
 
+    private int locked_inhibitor = -1;
+
     public MainWindow () {
         Object (
             deletable: false,
@@ -51,6 +53,11 @@ public class Installer.MainWindow : Gtk.Dialog {
     }
 
     construct {
+        locked_inhibitor = Distinst.session_inhibit_suspend ();
+        if (locked_inhibitor == -1) {
+            stderr.printf ("failed to inhibit suspension");
+        }
+
         language_view = new LanguageView ();
 
         stack = new Gtk.Stack ();
@@ -279,7 +286,7 @@ public class Installer.MainWindow : Gtk.Dialog {
             success_view.destroy ();
         }
 
-        success_view = new SuccessView (log);
+        success_view = new SuccessView (log, locked_inhibitor);
         stack.add (success_view);
         stack.visible_child = success_view;
 

@@ -20,9 +20,10 @@ public class SuccessView : AbstractInstallerView {
     public static int RESTART_TIMEOUT = 30;
 
     public string log { get; construct; }
+    public int inhibitor_lock { get; construct; }
 
-    public SuccessView (string log) {
-        Object (log: log);
+    public SuccessView (string log, int inhibitor_lock) {
+        Object (log: log, inhibitor_lock: inhibitor_lock);
     }
 
     construct {
@@ -78,15 +79,27 @@ public class SuccessView : AbstractInstallerView {
         action_area.add (terminal.toggle);
 
         var shutdown_button = new Gtk.Button.with_label (_("Shut Down"));
-        shutdown_button.clicked.connect (Utils.shutdown);
+        shutdown_button.clicked.connect (() => {
+            unlock_inhibitor ();
+            Utils.shutdown ();
+        });
 
         var restart_button = new Gtk.Button.with_label (_("Restart Device"));
         restart_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
-        restart_button.clicked.connect (Utils.restart);
+        restart_button.clicked.connect (() => {
+            unlock_inhibitor ();
+            Utils.restart ();
+        });
 
         action_area.add (shutdown_button);
         action_area.add (restart_button);
 
         show_all ();
+    }
+
+    private void unlock_inhibitor () {
+        if (-1 != inhibitor_lock) {
+            Posix.close (inhibitor_lock);
+        }
     }
 }
