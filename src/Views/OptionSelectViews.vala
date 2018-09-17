@@ -248,7 +248,6 @@ public class Installer.AlongsideView : OptionSelectView {
                 label.get_style_context ().add_class (Gtk.STYLE_CLASS_DIM_LABEL);
 
                 var button = new Gtk.ToggleButton ();
-                button.margin = 6;
                 button.hexpand = true;
                 button.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
                 button.add(label);
@@ -272,7 +271,7 @@ public class Installer.AlongsideView : OptionSelectView {
                     }
                 });
 
-                option_list.add (button);
+                option_list.attach (button, 0, noptions);
                 noptions += 1;
             }
         });
@@ -320,7 +319,6 @@ public class Installer.RefreshView: OptionSelectView {
                 bool can_retain_old = option.can_retain_old ();
 
                 var button = new Gtk.ToggleButton ();
-                button.margin = 6;
                 button.hexpand = true;
                 button.get_style_context ().add_class (Gtk.STYLE_CLASS_FLAT);
                 button.add(label);
@@ -344,7 +342,7 @@ public class Installer.RefreshView: OptionSelectView {
                     }
                 });
 
-                option_list.add (button);
+                option_list.attach (button, 0, noptions);
                 noptions += 1;
             }
         });
