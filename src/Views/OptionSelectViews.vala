@@ -129,10 +129,6 @@ public class Installer.AlongsideView : OptionSelectView {
     private Gtk.Grid sector_selector;
     private Gtk.Scale scale;
     private Gtk.Entry scale_entry;
-    private uint64 scale_min;
-    private Gtk.Label scale_min_label;
-    private uint64 scale_max;
-    private Gtk.Label scale_max_label;
 
     public AlongsideView (uint64 minimum_size) {
         Object (
@@ -155,15 +151,11 @@ public class Installer.AlongsideView : OptionSelectView {
 
         scale_entry = new Gtk.Entry ();
         scale_entry.input_purpose = Gtk.InputPurpose.DIGITS;
-        scale_entry.halign = Gtk.Align.START;
+        scale_entry.halign = Gtk.Align.END;
 
-        scale_min_label = new Gtk.Label (null);
-        scale_min_label.halign = Gtk.Align.START;
-        scale_min_label.use_markup = true;
-        
-        scale_max_label = new Gtk.Label (null);
-        scale_max_label.halign = Gtk.Align.END;
-        scale_max_label.use_markup = true;
+        var entry_label = new Gtk.Label ("<b>MiB</b>");
+        entry_label.use_markup = true;
+        entry_label.halign = Gtk.Align.START;
 
         var scale_grid = new Gtk.Grid ();
         scale_grid.row_spacing = 12;
@@ -172,16 +164,15 @@ public class Installer.AlongsideView : OptionSelectView {
         scale_grid.vexpand = true;
         scale_grid.valign = Gtk.Align.CENTER;
         scale_grid.attach (scale_entry, 0, 0);
-        scale_grid.attach (scale_min_label, 1, 0);
-        scale_grid.attach (scale, 2, 0);
-        scale_grid.attach (scale_max_label, 3, 0);
+        scale_grid.attach (entry_label, 1, 0);
+        scale_grid.attach (scale, 0, 1, 2);
 
         sector_selector = new Gtk.Grid ();
         sector_selector.attach (title, 0, 0);
         sector_selector.attach (scale_grid, 0, 1);
         sector_selector.show_all ();
 
-        scale_entry.changed.connect (() => {
+        scale_entry.activate.connect (() => {
             uint64 new_value = 0;
             scale_entry.get_text ().scanf ("%lldd", &new_value);
             scale.set_value ((double) new_value);
@@ -224,10 +215,6 @@ public class Installer.AlongsideView : OptionSelectView {
 
     private void set_scale_ranges (uint64 min, uint64 max) {
         scale.set_range ((double) min, (double) max);
-        scale_min = min;
-        scale_min_label.label = "<b>MiB</b>";
-        scale_max = max;
-        scale_max_label.label = "<b>%lld MiB</b>".printf (max);
         scale_entry.set_text ("%lld".printf (min));
     }
 
@@ -243,7 +230,7 @@ public class Installer.AlongsideView : OptionSelectView {
                 var label = new Gtk.Label (
                     partition == -1
                         ? _("Alongside %s on %s (unused region: %lld MiB free)").printf (os, device, free)
-                        : _("Alongside %s on %s (shrink part%d: %lld MiB free)").printf (os, device, partition, free)
+                        : _("Alongside %s on %s (shrink partition %d: %lld MiB free)").printf (os, device, partition, free)
                 );
                 label.get_style_context ().add_class (Gtk.STYLE_CLASS_DIM_LABEL);
 
