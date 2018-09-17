@@ -21,6 +21,7 @@
 public class Installer.MainWindow : Gtk.Dialog {
     private Gtk.Stack stack;
 
+    private AlongsideView alongside_view;
     private DiskView disk_view;
     private EncryptView encrypt_view;
     private ErrorView error_view;
@@ -128,9 +129,28 @@ public class Installer.MainWindow : Gtk.Dialog {
         stack.add (try_install_view);
         stack.visible_child = try_install_view;
 
-        try_install_view.custom_step.connect (() => load_partitioning_view ());
-        try_install_view.next_step.connect (() => load_disk_view ());
-        try_install_view.refresh_step.connect (() => load_refresh_view ());
+        try_install_view.custom_step.connect (load_partitioning_view);
+        try_install_view.next_step.connect (load_disk_view);
+        try_install_view.refresh_step.connect (load_refresh_view);
+        try_install_view.alongside_step.connect (load_alongside_view);
+    }
+
+    private void load_alongside_view () {
+        if (alongside_view == null) {
+            alongside_view = new AlongsideView (minimum_disk_size);
+            alongside_view.previous_view = try_install_view;
+            alongside_view.next_step.connect (() => {
+                load_encrypt_view ();
+            });
+
+            alongside_view.cancel.connect (() => {
+                stack.visible_child = try_install_view;
+            });
+            stack.add (alongside_view);
+        }
+
+        stack.visible_child = alongside_view;
+        alongside_view.update_options ();
     }
 
     private void load_refresh_view () {

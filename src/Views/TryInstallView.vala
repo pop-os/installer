@@ -17,6 +17,7 @@
  */
 
 public class Installer.TryInstallView : AbstractInstallerView {
+    public signal void alongside_step ();
     public signal void custom_step ();
     public signal void next_step ();
     public signal void refresh_step ();
@@ -119,6 +120,12 @@ public class Installer.TryInstallView : AbstractInstallerView {
             _("Reinstall while keeping user accounts and files. Applications will need to be reinstalled manually.")
         );
 
+        var alongside_button = new InstallTypeButton (
+            _("Install Alongside OS"),
+            "gcleaner",
+            _("Install alongside another operating system.")
+        );
+
         var custom_button = new InstallTypeButton (
             _("Custom (Advanced)"),
             "disk-utility",
@@ -131,6 +138,7 @@ public class Installer.TryInstallView : AbstractInstallerView {
         type_grid.add (demo_button);
         type_grid.add (clean_install_button);
         type_grid.add (refresh_install_button);
+        type_grid.add (alongside_button);
         type_grid.add (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
         type_grid.add (custom_button);
 
@@ -193,6 +201,25 @@ public class Installer.TryInstallView : AbstractInstallerView {
             }
         });
 
+        alongside_button.key_press_event.connect ((event) => handle_key_press (alongside_button, event));
+        alongside_button.clicked.connect (() => {
+            if (alongside_button.active) {
+                type_grid.get_children ().foreach ((child) => {
+                    if (child is Gtk.ToggleButton) {
+                        ((Gtk.ToggleButton)child).active = child == alongside_button;
+                    }
+                });
+
+                next_button.label = alongside_button.type_title;
+                next_button.sensitive = true;
+                next_button_handler_id = next_button.clicked.connect (() => alongside_step ());
+            } else {
+                next_button.sensitive = false;
+                next_button.label = _("Next");
+                next_button.disconnect (next_button_handler_id);
+            }
+        });
+
         custom_button.key_press_event.connect ((event) => handle_key_press (custom_button, event));
         custom_button.clicked.connect (() => {
             if (custom_button.active) {
@@ -221,9 +248,11 @@ public class Installer.TryInstallView : AbstractInstallerView {
             decrypt_dialog.run ();
 
             // The dialog will respond with a delete event once it has decrypted a LUKS partition.
-            decrypt_dialog.response.connect((resp) => {
+            decrypt_dialog.response.connect ((resp) => {
                 if (resp == Gtk.ResponseType.DELETE_EVENT) {
                     refresh_install_button.visible = options.get_options ().has_refresh_options ();
+                    alongside_button.visible = options.get_options ().has_alongside_options ();
+
                     var nlocked = 0;
                     foreach (unowned Distinst.Partition partition in options.borrow_disks ().get_encrypted_partitions ()) {
                         string path = Utils.string_from_utf8 (partition.get_device_path ());
@@ -245,6 +274,7 @@ public class Installer.TryInstallView : AbstractInstallerView {
         decrypt_infobar.visible = options.contains_luks ();
 
         refresh_install_button.visible = options.get_options ().has_refresh_options ();
+        alongside_button.visible = options.get_options ().has_alongside_options ();
     }
 
     private bool handle_key_press (Gtk.Button button, Gdk.EventKey event) {

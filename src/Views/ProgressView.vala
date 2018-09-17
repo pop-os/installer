@@ -152,13 +152,10 @@ public class ProgressView : AbstractInstallerView {
                     }
 
                     break;
+                case Distinst.InstallOptionVariant.ALONGSIDE:
+                case Distinst.InstallOptionVariant.ERASE:
                 case Distinst.InstallOptionVariant.RECOVERY:
                     option.encrypt_pass = current_config.encryption_password;
-
-                    break;
-                case Distinst.InstallOptionVariant.ERASE:
-                    option.encrypt_pass = current_config.encryption_password;
-
                     break;
             }
 
