@@ -145,7 +145,7 @@ public class Installer.AlongsideView : OptionSelectView {
         title.get_style_context ().add_class ("h2");
         title.halign = Gtk.Align.CENTER;
 
-        scale = new Gtk.Scale.with_range (Gtk.Orientation.HORIZONTAL, 0, 1, 1);
+        scale = new Gtk.Scale.with_range (Gtk.Orientation.HORIZONTAL, 0, 1024, 1024);
         scale.set_value_pos (Gtk.PositionType.BOTTOM);
         scale.hexpand = true;
 
@@ -179,7 +179,14 @@ public class Installer.AlongsideView : OptionSelectView {
         });
 
         scale.value_changed.connect (() => {
-            scale_entry.set_text ("%lld".printf (this.get_scale_value ()));
+            var current = this.get_scale_value ();
+            var distance = current % 1024;
+            var new_value = distance > 511
+                ? current + 1024 - distance
+                : current - distance;
+
+            scale.set_value ((double) new_value);
+            scale_entry.set_text ("%lld".printf (new_value));
         });
 
         scale.format_value.connect ((mebibytes) => {
