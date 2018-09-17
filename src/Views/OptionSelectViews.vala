@@ -4,6 +4,7 @@ public class Installer.OptionSelectView : AbstractInstallerView {
     private Gtk.Stack content_stack;
     private Gtk.Grid option_list;
     private Gtk.Grid main_content;
+    public Gtk.Button back_button;
     public Gtk.Button next_button;
     public int noptions = 0;
     public string title { get; construct; }
@@ -35,11 +36,10 @@ public class Installer.OptionSelectView : AbstractInstallerView {
         scrolled_list.hscrollbar_policy = Gtk.PolicyType.NEVER;
         scrolled_list.add (option_list);
 
-        next_button = new Gtk.Button.with_label (_(this.button_desc));
+        next_button = new Gtk.Button.with_label (this.button_desc);
         next_button.get_style_context ().add_class (Gtk.STYLE_CLASS_DESTRUCTIVE_ACTION);
         next_button.sensitive = false;
         next_button.clicked.connect (() => next ());
-        action_area.add (next_button);
 
         main_content = new Gtk.Grid ();
         main_content.column_spacing = 12;
@@ -66,9 +66,15 @@ public class Installer.OptionSelectView : AbstractInstallerView {
         this.margin_start = 48;
         this.margin_end = 48;
 
-        back.connect (() => {
+        back_button = new Gtk.Button.with_label (_("Back"));
+        action_area.add (back_button);
+        action_area.add (next_button);
+
+        back_button.clicked.connect (() => {
             if (this.is_main ()) {
-                cancel ();
+                back_button.visible = false;
+                cancel_button.visible = true;
+                cancel_button.clicked ();
             } else {
                 this.switch_to_main ();
             }
@@ -99,6 +105,9 @@ public class Installer.OptionSelectView : AbstractInstallerView {
 
     public void switch_to_main () {
         content_stack.visible_child = main_content;
+        var ctx = this.next_button.get_style_context ();
+        ctx.add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
+        ctx.remove_class (Gtk.STYLE_CLASS_DESTRUCTIVE_ACTION);
     }
 
     public void switch_to (Gtk.Widget widget) {
@@ -189,6 +198,10 @@ public class Installer.AlongsideView : OptionSelectView {
         this.next.connect (() => {
             if (this.is_main ()) {
                 this.switch_to ((Gtk.Grid) sector_selector);
+                base.next_button.label = this.button_desc;
+                var ctx = base.next_button.get_style_context ();
+                ctx.add_class (Gtk.STYLE_CLASS_DESTRUCTIVE_ACTION);
+                ctx.remove_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
                 return;
             }
 

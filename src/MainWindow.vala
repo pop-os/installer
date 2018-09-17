@@ -149,6 +149,13 @@ public class Installer.MainWindow : Gtk.Dialog {
             stack.add (alongside_view);
         }
 
+        alongside_view.next_button.label = _("Choose New Size");
+        alongside_view.back_button.visible = true;
+        alongside_view.cancel_button.visible = false;
+        var ctx = alongside_view.next_button.get_style_context ();
+        ctx.add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
+        ctx.remove_class (Gtk.STYLE_CLASS_DESTRUCTIVE_ACTION);
+
         stack.visible_child = alongside_view;
         alongside_view.update_options ();
     }
