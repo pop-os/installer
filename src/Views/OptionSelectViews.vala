@@ -238,8 +238,13 @@ public class Installer.AlongsideView : OptionSelectView {
                 var os = Utils.string_from_utf8 (option.get_os ());
                 var device = Utils.string_from_utf8 (option.get_device ());
                 var free = option.get_sectors_free () / 2048;
+                var partition = option.get_partition ();
 
-                var label = new Gtk.Label (_("%s on %s (%lld MiB free)").printf (os, device, free));
+                var label = new Gtk.Label (
+                    partition == -1
+                        ? _("Alongside %s on %s (unused region: %lld MiB free)").printf (os, device, free)
+                        : _("Alongside %s on %s (shrink part%d: %lld MiB free)").printf (os, device, partition, free)
+                );
                 label.get_style_context ().add_class (Gtk.STYLE_CLASS_DIM_LABEL);
 
                 var button = new Gtk.ToggleButton ();
