@@ -269,16 +269,22 @@ public class Installer.PartitioningView : AbstractInstallerView {
     private void set_mount (Mount mount) throws GLib.Error {
         unset_mount_point (mount);
 
+        string? error = null;
+
         if (mount.mount_point == "/boot/efi") {
             if (!mount.is_valid_boot_mount ()) {
-                throw new GLib.IOError.FAILED (_("EFI partition has the wrong file system"));
+                error = _("EFI partition has the wrong file system");
             } else if (mount.sectors < REQUIRED_EFI_SECTORS) {
-                throw new GLib.IOError.FAILED (_("EFI partition is too small"));
+                error = _("EFI partition is too small");
             }
         } else if (mount.mount_point == "/" && !mount.is_valid_root_mount ()) {
-            throw new GLib.IOError.FAILED (_("Invalid file system for root"));
+            error = _("Invalid file system for root");
         } else if (mount.mount_point == "/home" && !mount.is_valid_root_mount ()) {
-            throw new GLib.IOError.FAILED (_("Invalid file system for home"));
+            error = _("Invalid file system for home");
+        }
+
+        if (error != null) {
+            throw new GLib.IOError.FAILED (error);
         }
 
         for (int i = 0; i < mounts.size; i++) {
