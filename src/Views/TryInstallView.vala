@@ -120,14 +120,14 @@ public class Installer.TryInstallView : AbstractInstallerView {
 
         var refresh_install_button = button_creator.new_button (
             _("Refresh Install"),
-            "gcleaner",
+            "view-refresh",
             _("Reinstall while keeping user accounts and files. Applications will need to be reinstalled manually."),
             () => refresh_step ()
         );
 
         var alongside_button = button_creator.new_button (
             _("Install Alongside OS"),
-            "gcleaner",
+            "drive-multidisk",
             _("Install alongside another operating system."),
             () => alongside_step ()
         );
