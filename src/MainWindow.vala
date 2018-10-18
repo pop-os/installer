@@ -29,6 +29,7 @@ public class Installer.MainWindow : Gtk.Dialog {
     private PartitioningView partitioning_view;
     private ProgressView progress_view;
     private SuccessView success_view;
+    private TimezoneView timezone_view;
     private EncryptView encrypt_view;
     private ErrorView error_view;
     private bool check_ignored = false;
@@ -207,7 +208,7 @@ public class Installer.MainWindow : Gtk.Dialog {
             unowned Configuration config = Configuration.get_default ();
             config.luks = (owned) partitioning_view.luks;
             config.mounts = (owned) partitioning_view.mounts;
-            load_progress_view ();
+            load_timezone_view ();
         });
 
         load_check_view ();
@@ -223,7 +224,17 @@ public class Installer.MainWindow : Gtk.Dialog {
         stack.add (encrypt_view);
         stack.visible_child = encrypt_view;
 
-        encrypt_view.next_step.connect (() => load_progress_view ());
+        encrypt_view.next_step.connect (load_timezone_view);
+    }
+
+    private void load_timezone_view () {
+        if (timezone_view == null) {
+            timezone_view = new TimezoneView ();
+            stack.add (timezone_view);
+            timezone_view.next_step.connect (load_progress_view);
+        }
+
+        stack.visible_child = timezone_view;
     }
 
     private void load_progress_view () {
