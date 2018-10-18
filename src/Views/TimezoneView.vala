@@ -1,6 +1,4 @@
 public class Installer.TimezoneView : AbstractInstallerView {
-    Gtk.Label select_label;
-    Gtk.Stack select_stack;
     Gtk.Button next_button;
     Distinst.Timezones timezones;
     VariantWidget variants;
@@ -24,47 +22,25 @@ public class Installer.TimezoneView : AbstractInstallerView {
         variants.main_listbox.select_row (variants.main_listbox.get_row_at_index (0));
         variants.main_listbox.row_activated.connect (row_activated);
         variants.variant_listbox.row_selected.connect (set_active_region);
-        variants.key_press_event.connect ((event) => {
-            switch (event.keyval) {
-                case Gdk.Key.Return:
-                    if (next_button.sensitive) {
-                        next_button.clicked ();
-                    }
-                    return true;
-                case Gdk.Key.Left:
-                    if (event.state != Gdk.ModifierType.MOD1_MASK) {
-                        break;
-                    }
-                case Gdk.Key.Escape:
-                    variants.back_button.clicked ();
-                    return true;
-            }
 
-            return false;
-        });
-
-        select_label = new Gtk.Label (_("Select a Timezone"));
-        select_label.get_style_context ().add_class ("h2");
-        select_label.valign = Gtk.Align.START;
-        select_label.halign = Gtk.Align.START;
-        select_label.wrap = true;
-
-        var grid = new Gtk.Grid ();
-        grid.orientation = Gtk.Orientation.VERTICAL;
-        grid.row_spacing = 12;
-        grid.add (select_label);
-        grid.add (this.variants);
+        var title = new Gtk.Label (_("Select a Timezone"));
+        title.get_style_context ().add_class ("h2");
+        title.valign = Gtk.Align.START;
+        title.halign = Gtk.Align.CENTER;
+        title.wrap = true;
 
         var artwork = new Gtk.Grid ();
         artwork.get_style_context ().add_class ("encrypt");
         artwork.get_style_context ().add_class ("artwork");
         artwork.vexpand = true;
 
-        content_area.attach (artwork, 0, 0);
-        content_area.attach (grid,    1, 0, 1, 2);
+        content_area.attach (artwork,  0, 0);
+        content_area.attach (title,    0, 1);
+        content_area.attach (variants, 1, 0, 1, 2);
 
         next_button = new Gtk.Button.with_label (_("Select"));
         next_button.sensitive = false;
+        next_button.can_default = true;
         next_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
         next_button.clicked.connect (() => {
             Configuration.get_default ().timezone = active_region;
@@ -84,6 +60,7 @@ public class Installer.TimezoneView : AbstractInstallerView {
 
         var region_row = (RegionRow) row;
         active_region = region_row.region;
+        next_button.has_default = true;
     }
 
     private void row_activated (Gtk.ListBoxRow? row) {
@@ -109,7 +86,7 @@ public class Installer.TimezoneView : AbstractInstallerView {
 
         var zone_name = Utils.string_from_utf8 (zone.name ());
         this.variants.variant_listbox.select_row (variants.variant_listbox.get_row_at_index (0));
-        this.variants.show_variants (_("Select Region"), "<b>%s</b>".printf (zone_name));
+        this.variants.show_variants (_("Select Zone"), "<b>%s</b>".printf (zone_name));
         next_button.sensitive = true;
     }
 

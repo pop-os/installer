@@ -19,25 +19,23 @@
  */
 
 public class Installer.MainWindow : Gtk.Dialog {
-    private Gtk.Stack stack;
-
-    private LanguageView language_view;
-    private KeyboardLayoutView keyboard_layout_view;
-    private TryInstallView try_install_view;
-    private Installer.CheckView check_view;
-    private DiskView disk_view;
-    private PartitioningView partitioning_view;
-    private ProgressView progress_view;
-    private SuccessView success_view;
-    private TimezoneView timezone_view;
-    private EncryptView encrypt_view;
-    private ErrorView error_view;
-    private bool check_ignored = false;
-
-    private uint64 minimum_disk_size;
-
-    private DateTime? start_date = null;
-    private DateTime? end_date = null;
+    bool check_ignored = false;
+    DateTime? end_date = null;
+    DateTime? start_date = null;
+    DiskView disk_view;
+    EncryptView encrypt_view;
+    ErrorView error_view;
+    Gtk.Stack stack;
+    Installer.CheckView check_view;
+    KeyboardLayoutView keyboard_layout_view;
+    LanguageView language_view;
+    PartitioningView partitioning_view;
+    ProgressView progress_view;
+    SuccessView success_view;
+    TimezoneView timezone_view;
+    TryInstallView try_install_view;
+    uint64 minimum_disk_size;
+    UserView user_view;
 
     public MainWindow () {
         Object (
@@ -231,10 +229,20 @@ public class Installer.MainWindow : Gtk.Dialog {
         if (timezone_view == null) {
             timezone_view = new TimezoneView ();
             stack.add (timezone_view);
-            timezone_view.next_step.connect (load_progress_view);
+            timezone_view.next_step.connect (load_user_view);
         }
 
         stack.visible_child = timezone_view;
+    }
+
+    private void load_user_view () {
+        if (user_view == null) {
+            user_view = new UserView ();
+            stack.add (user_view);
+            user_view.next_step.connect (load_progress_view);
+        }
+
+        stack.visible_child = user_view;
     }
 
     private void load_progress_view () {
