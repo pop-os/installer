@@ -126,7 +126,10 @@ public class ProgressView : AbstractInstallerView {
         unowned Configuration current_config = Configuration.get_default ();
         unowned InstallOptions options = InstallOptions.get_default ();
 
-        stderr.printf ("locale: %s\n", current_config.get_locale ());
+        config.timezone = current_config.timezone;
+        config.fullname = current_config.fullname;
+        config.username = current_config.username;
+        config.password = current_config.password;
         config.lang = current_config.get_locale ();
         config.keyboard_layout = current_config.keyboard_layout;
         config.keyboard_model = null;

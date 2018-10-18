@@ -4,6 +4,8 @@ public class UserView : AbstractInstallerView {
     private ErrorRevealer confirm_entry_revealer;
     private ErrorRevealer pw_error_revealer;
     private Gtk.Button next_button;
+    private Gtk.Entry name_entry;
+    private Gtk.Entry user_entry;
     private ValidatedEntry confirm_entry;
     private ValidatedEntry pw_entry;
     private Gtk.LevelBar pw_levelbar;
@@ -24,6 +26,15 @@ public class UserView : AbstractInstallerView {
         description.use_markup = true;
         description.wrap = true;
         description.xalign = 0;
+
+        var name_label = new Granite.HeaderLabel (_("Set Full Name"));
+
+        name_entry = new Gtk.Entry ();
+        name_entry.grab_focus ();
+
+        var user_label = new Granite.HeaderLabel (_("Choose Username"));
+
+        user_entry = new Gtk.Entry ();
 
         var pw_label = new Granite.HeaderLabel (_("Choose Account Password"));
 
@@ -80,6 +91,10 @@ public class UserView : AbstractInstallerView {
         next_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
         next_button.can_default = true;
         next_button.clicked.connect (() => {
+            var config = Configuration.get_default ();
+            config.username = user_entry.get_text ();
+            config.fullname = name_entry.get_text ();
+            config.password = pw_entry.get_text ();
             next_step ();
         });
 
@@ -143,7 +158,12 @@ public class UserView : AbstractInstallerView {
     }
 
     private void update_next_button () {
-        if (pw_entry.is_valid && confirm_entry.is_valid) {
+        bool enable = name_entry.get_text_length () != 0
+            && user_entry.get_text_length () != 0
+            && pw_entry.is_valid
+            && confirm_entry.is_valid;
+
+        if (enable) {
             next_button.sensitive = true;
             next_button.has_default = true;
         } else {
