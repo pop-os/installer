@@ -72,9 +72,14 @@ public class UserView : AbstractInstallerView {
         });
 
         var password_grid = new Gtk.Grid ();
+        password_grid.valign = Gtk.Orientation.CENTER;
         password_grid.orientation = Gtk.Orientation.VERTICAL;
         password_grid.row_spacing = 3;
         password_grid.add (description);
+        password_grid.add (name_label);
+        password_grid.add (name_entry);
+        password_grid.add (user_label);
+        password_grid.add (user_entry);
         password_grid.add (pw_label);
         password_grid.add (pw_entry);
         password_grid.add (pw_levelbar);
