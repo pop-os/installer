@@ -34,6 +34,7 @@ vala_files = [
     'Widgets/PartitionBar.vala',
     'Widgets/PartitionMenu.vala',
     'Widgets/Terminal.vala',
+    'Widgets/Username.vala',
     'Widgets/VariantWidget.vala'
 ]
 

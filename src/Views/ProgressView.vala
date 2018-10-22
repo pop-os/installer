@@ -99,6 +99,8 @@ public class ProgressView : AbstractInstallerView {
 
             stderr.printf ("locale: %s\n", current_config.get_locale ());
             new Thread<void*> (null, () => {
+                timezone_callback ();
+                user_callback ();
                 fake_status (Distinst.Step.PARTITION);
                 fake_status (Distinst.Step.EXTRACT);
                 fake_status (Distinst.Step.CONFIGURE);

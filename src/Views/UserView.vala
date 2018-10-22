@@ -4,8 +4,7 @@ public class UserView : AbstractInstallerView {
     private ErrorRevealer confirm_entry_revealer;
     private ErrorRevealer pw_error_revealer;
     private Gtk.Button next_button;
-    private Gtk.Entry name_entry;
-    private Gtk.Entry user_entry;
+    private Username username;
     private ValidatedEntry confirm_entry;
     private ValidatedEntry pw_entry;
     private Gtk.LevelBar pw_levelbar;
@@ -27,14 +26,9 @@ public class UserView : AbstractInstallerView {
         description.wrap = true;
         description.xalign = 0;
 
-        var name_label = new Granite.HeaderLabel (_("Set Full Name"));
-
-        name_entry = new Gtk.Entry ();
-        name_entry.grab_focus ();
-
-        var user_label = new Granite.HeaderLabel (_("Choose Username"));
-
-        user_entry = new Gtk.Entry ();
+        username = new Username ();
+        username.orientation = Gtk.Orientation.VERTICAL;
+        username.valign = Gtk.Orientation.CENTER;
 
         var pw_label = new Granite.HeaderLabel (_("Choose Account Password"));
 
@@ -76,10 +70,7 @@ public class UserView : AbstractInstallerView {
         password_grid.orientation = Gtk.Orientation.VERTICAL;
         password_grid.row_spacing = 3;
         password_grid.add (description);
-        password_grid.add (name_label);
-        password_grid.add (name_entry);
-        password_grid.add (user_label);
-        password_grid.add (user_entry);
+        password_grid.add (username);
         password_grid.add (pw_label);
         password_grid.add (pw_entry);
         password_grid.add (pw_levelbar);
@@ -97,8 +88,8 @@ public class UserView : AbstractInstallerView {
         next_button.can_default = true;
         next_button.clicked.connect (() => {
             var config = Configuration.get_default ();
-            config.username = user_entry.get_text ();
-            config.realname = name_entry.get_text ();
+            config.username = username.get_user_name ();
+            config.realname = username.get_real_name ();
             config.password = pw_entry.get_text ();
             GLib.AtomicInt.set (ref config.user_set, 1);
             next_step ();
@@ -164,8 +155,7 @@ public class UserView : AbstractInstallerView {
     }
 
     private void update_next_button () {
-        bool enable = name_entry.get_text_length () != 0
-            && user_entry.get_text_length () != 0
+        bool enable = username.is_ready ()
             && pw_entry.is_valid
             && confirm_entry.is_valid;
 
