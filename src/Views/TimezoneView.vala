@@ -43,7 +43,9 @@ public class Installer.TimezoneView : AbstractInstallerView {
         next_button.can_default = true;
         next_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
         next_button.clicked.connect (() => {
-            Configuration.get_default ().timezone = active_region;
+            var conf = Configuration.get_default ();
+            conf.timezone = active_region;
+            GLib.AtomicInt.set (ref conf.timezone_set, 1);
             next_step ();
         });
 

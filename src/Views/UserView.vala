@@ -98,8 +98,9 @@ public class UserView : AbstractInstallerView {
         next_button.clicked.connect (() => {
             var config = Configuration.get_default ();
             config.username = user_entry.get_text ();
-            config.fullname = name_entry.get_text ();
+            config.realname = name_entry.get_text ();
             config.password = pw_entry.get_text ();
+            GLib.AtomicInt.set (ref config.user_set, 1);
             next_step ();
         });
 

@@ -114,6 +114,8 @@ public class ProgressView : AbstractInstallerView {
         var installer = new Distinst.Installer ();
         installer.on_error (installation_error_callback);
         installer.on_status (installation_status_callback);
+        installer.set_timezone_callback (timezone_callback);
+        installer.set_user_callback (user_callback);
 
         var config = Distinst.Config ();
         config.flags = Distinst.MODIFY_BOOT_ORDER | Distinst.INSTALL_HARDWARE_SUPPORT;
@@ -126,10 +128,6 @@ public class ProgressView : AbstractInstallerView {
         unowned Configuration current_config = Configuration.get_default ();
         unowned InstallOptions options = InstallOptions.get_default ();
 
-        config.timezone = current_config.timezone;
-        config.fullname = current_config.fullname;
-        config.username = current_config.username;
-        config.password = current_config.password;
         config.lang = current_config.get_locale ();
         config.keyboard_layout = current_config.keyboard_layout;
         config.keyboard_model = null;
@@ -330,5 +328,27 @@ public class ProgressView : AbstractInstallerView {
             on_error ();
             return GLib.Source.REMOVE;
         });
+    }
+
+    private unowned Distinst.Region timezone_callback () {
+        var conf = Configuration.get_default ();
+        while (AtomicInt.get (ref conf.timezone_set) == 0) {
+            Thread.usleep (100000);
+        }
+
+        return conf.timezone;
+    }
+
+    private Distinst.UserAccountCreate user_callback () {
+        var conf = Configuration.get_default ();
+        while (AtomicInt.get (ref conf.user_set) == 0) {
+            Thread.usleep (100000);
+        }
+
+        return Distinst.UserAccountCreate () {
+            realname = conf.realname,
+            username = conf.username,
+            password = conf.password
+        };
     }
 }

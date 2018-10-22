@@ -34,9 +34,11 @@ public class Configuration : GLib.Object {
     public string? keyboard_variant { get; set; default = null; }
     public string? encryption_password { get; set; default = null; }
     public unowned Distinst.Region timezone;
-    public string? fullname;
+    public string? realname;
     public string? username;
     public string? password;
+    public int timezone_set;
+    public int user_set;
     public string disk { get; set; }
     public bool recovery { get; set; default = false; }
     public bool retain_home { get; set; default = false; }

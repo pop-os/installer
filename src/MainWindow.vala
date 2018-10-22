@@ -226,6 +226,8 @@ public class Installer.MainWindow : Gtk.Dialog {
     }
 
     private void load_timezone_view () {
+        load_progress_view ();
+
         if (timezone_view == null) {
             timezone_view = new TimezoneView ();
             stack.add (timezone_view);
@@ -239,7 +241,9 @@ public class Installer.MainWindow : Gtk.Dialog {
         if (user_view == null) {
             user_view = new UserView ();
             stack.add (user_view);
-            user_view.next_step.connect (load_progress_view);
+            user_view.next_step.connect (() => {
+                stack.visible_child = progress_view;
+            });
         }
 
         stack.visible_child = user_view;
@@ -254,7 +258,6 @@ public class Installer.MainWindow : Gtk.Dialog {
 
         progress_view = new ProgressView ();
         stack.add (progress_view);
-        stack.visible_child = progress_view;
 
         progress_view.on_success.connect (() => {
             load_success_view (progress_view.get_log ());
