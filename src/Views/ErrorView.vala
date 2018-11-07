@@ -37,7 +37,7 @@ public class ErrorView : AbstractInstallerView {
         title_label.xalign = 0;
         title_label.get_style_context ().add_class ("h2");
 
-        var description_label = new Gtk.Label (_("Installing %s failed, possibly due to a hardware error. Your device may not restart properly. You can try the following:").printf (Utils.get_pretty_name ()));
+        var description_label = new Gtk.Label (_("Installing %s failed, possibly due to a hardware error. Detailed logs were written to <b>/tmp/installer.log</b>. Your device may not restart properly. You can try the following:").printf (Utils.get_pretty_name ()));
         description_label.max_width_chars = 52;
         description_label.wrap = true;
         description_label.xalign = 0;
