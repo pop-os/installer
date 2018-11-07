@@ -43,7 +43,7 @@ public class Installer.TryInstallView : AbstractInstallerView {
         var type_image = new Gtk.Image.from_icon_name ("system-os-installer", Gtk.IconSize.DIALOG);
         type_image.valign = Gtk.Align.START;
 
-        var type_label = new Gtk.Label (_("Try or Install"));
+        var type_label = new Gtk.Label (_("Install"));
         type_label.hexpand = true;
         type_label.get_style_context ().add_class ("h2");
 
@@ -108,7 +108,7 @@ public class Installer.TryInstallView : AbstractInstallerView {
         var demo_button = button_creator.new_button (
             _("Try Demo Mode"),
             "desktop",
-            _("Changes will not be saved, and data from your previous OS will be unchanged. Performance and features may not reflect the installed experience."),
+            null,
             Utils.demo_mode
         );
 
@@ -142,8 +142,16 @@ public class Installer.TryInstallView : AbstractInstallerView {
 
         action_area.add (back_button);
         action_area.add (next_button);
+        action_area.add (demo_button);
+        action_area.set_child_secondary (demo_button, true);
+        action_area.set_child_non_homogeneous (demo_button, true);
 
-        type_grid.add (demo_button);
+        var sizegroup = new Gtk.SizeGroup (Gtk.SizeGroupMode.BOTH);
+        sizegroup.add_widget (clean_install_button.type_image);
+        sizegroup.add_widget (refresh_install_button.type_image);
+        sizegroup.add_widget (alongside_button.type_image);
+        sizegroup.add_widget (custom_button.type_image);
+
         type_grid.add (clean_install_button);
         type_grid.add (refresh_install_button);
         type_grid.add (alongside_button);
@@ -193,8 +201,6 @@ public class Installer.TryInstallView : AbstractInstallerView {
         refresh_install_button.visible = options.get_options ().has_refresh_options ();
         alongside_button.visible = options.get_options ().has_alongside_options ();
     }
-
-    
 
     private bool handle_key_press (Gtk.Button button, Gdk.EventKey event) {
         if (event.keyval == Gdk.Key.Return) {
