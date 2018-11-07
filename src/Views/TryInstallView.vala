@@ -103,6 +103,7 @@ public class Installer.TryInstallView : AbstractInstallerView {
         next_button.sensitive = false;
 
         var button_creator = new InstallButtonFactory (next_button, type_grid);
+        string pretty_name = Utils.get_pretty_name ();
 
         var demo_button = button_creator.new_button (
             _("Try Demo Mode"),
@@ -114,7 +115,7 @@ public class Installer.TryInstallView : AbstractInstallerView {
         var clean_install_button = button_creator.new_button (
             _("Clean Install"),
             "gcleaner",
-            _("Erase everything and install a fresh copy of %s.").printf (Utils.get_pretty_name ()),
+            _("Erase everything and install a fresh copy of %s.").printf (pretty_name),
             () => next_step ()
         );
 
@@ -128,7 +129,7 @@ public class Installer.TryInstallView : AbstractInstallerView {
         var alongside_button = button_creator.new_button (
             _("Install Alongside OS"),
             "drive-multidisk",
-            _("Install alongside another operating system."),
+            _("Install %s next to one or more existing OS installations").printf (pretty_name),
             () => alongside_step ()
         );
 
