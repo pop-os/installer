@@ -139,9 +139,9 @@ public class Installer.MainWindow : Gtk.Dialog {
         if (alongside_view == null) {
             alongside_view = new AlongsideView (minimum_disk_size);
             alongside_view.previous_view = try_install_view;
-            alongside_view.next_step.connect (() => {
-                load_encrypt_view ();
-            });
+            //  alongside_view.next_step.connect (() => {
+            //      load_encrypt_view ();
+            //  });
 
             alongside_view.cancel.connect (() => {
                 stack.visible_child = try_install_view;
@@ -149,12 +149,12 @@ public class Installer.MainWindow : Gtk.Dialog {
             stack.add (alongside_view);
         }
 
-        alongside_view.next_button.label = _("Choose New Size");
-        alongside_view.back_button.visible = true;
-        alongside_view.cancel_button.visible = false;
-        var ctx = alongside_view.next_button.get_style_context ();
-        ctx.add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
-        ctx.remove_class (Gtk.STYLE_CLASS_DESTRUCTIVE_ACTION);
+        //  alongside_view.next_button.label = _("Choose New Size");
+        //  alongside_view.back_button.visible = true;
+        //  alongside_view.cancel_button.visible = false;
+        //  var ctx = alongside_view.next_button.get_style_context ();
+        //  ctx.add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
+        //  ctx.remove_class (Gtk.STYLE_CLASS_DESTRUCTIVE_ACTION);
 
         stack.visible_child = alongside_view;
         alongside_view.update_options ();
@@ -176,11 +176,6 @@ public class Installer.MainWindow : Gtk.Dialog {
         
         stack.visible_child = refresh_view;
         refresh_view.update_options ();
-
-        // If there's only one option, go ahead and select that option.
-        if (refresh_view.noptions == 1) {
-            refresh_view.select_first_option ();
-        }
     }
 
     private void set_check_view_visible (bool show) {
