@@ -102,15 +102,11 @@ public class Installer.TryInstallView : AbstractInstallerView {
         next_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
         next_button.sensitive = false;
 
+        var demo_button = new Gtk.Button.with_label (_("Try Demo Mode"));
+        demo_button.clicked.connect (Utils.demo_mode);
+
         var button_creator = new InstallButtonFactory (next_button, type_grid);
         string pretty_name = Utils.get_pretty_name ();
-
-        var demo_button = button_creator.new_button (
-            _("Try Demo Mode"),
-            "desktop",
-            null,
-            Utils.demo_mode
-        );
 
         var clean_install_button = button_creator.new_button (
             _("Clean Install"),
