@@ -71,9 +71,9 @@ public class Installer.TryInstallView : AbstractInstallerView {
         grid.margin = 12;
         grid.valign = Gtk.Align.FILL;
         grid.column_homogeneous = true;
-        grid.attach (artwork,       0, 1, 1, 2);
-        grid.attach (type_label,    1, 1);
-        grid.attach (type_scrolled, 1, 2);
+        grid.attach (artwork,       0, 0);
+        grid.attach (type_label,    0, 1);
+        grid.attach (type_scrolled, 1, 0, 1, 2);
         
         content_area.margin = 0;
         content_area.valign = Gtk.Align.FILL;
@@ -135,6 +135,10 @@ public class Installer.TryInstallView : AbstractInstallerView {
             _("Create, resize, or otherwise manage partitions manually. This method may lead to data loss."),
             () => custom_step ()
         );
+
+        var sg_action_area = new Gtk.SizeGroup (Gtk.SizeGroupMode.BOTH);
+        sg_action_area.add_widget (back_button);
+        sg_action_area.add_widget (next_button);
 
         action_area.add (back_button);
         action_area.add (next_button);

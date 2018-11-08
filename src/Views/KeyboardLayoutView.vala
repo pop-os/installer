@@ -59,6 +59,10 @@ public class KeyboardLayoutView : AbstractInstallerView {
         next_button.sensitive = false;
         next_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
 
+        var size_group = new Gtk.SizeGroup (Gtk.SizeGroupMode.BOTH);
+        size_group.add_widget (back_button);
+        size_group.add_widget (next_button);
+
         action_area.add (back_button);
         action_area.add (next_button);
 
