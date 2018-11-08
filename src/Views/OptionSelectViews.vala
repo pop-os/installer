@@ -29,6 +29,7 @@ public class Installer.OptionSelectView : AbstractInstallerView {
         title.get_style_context ().add_class ("h2");
 
         option_list = new Gtk.Grid ();
+        option_list.halign = Gtk.Align.CENTER;
         option_list.expand = true;
 
         var scrolled_list = new Gtk.ScrolledWindow (null, null);
