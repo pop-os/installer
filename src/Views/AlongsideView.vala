@@ -36,14 +36,14 @@ public class AlongsideView: OptionsView {
             _("Install Alongside")
         };
 
-        base.next_button.label = NEXT_LABEL[2];
-        base.next.connect (() => next_step (set_scale, selected_os, selected_free, selected_total));
-        this.show_all ();
+        next_button.label = NEXT_LABEL[2];
+        next.connect (() => next_step (set_scale, selected_os, selected_free, selected_total));
+        show_all ();
     }
 
     // Clears existing options in the view, and creates new installation options.
     public void update_options () {
-        this.clear_options ();
+        base.clear_options ();
         var install_options = InstallOptions.get_default ();
         foreach (var option in install_options.get_options ().get_alongside_options ()) {
             var os = Utils.string_from_utf8 (option.get_os ());
@@ -67,11 +67,12 @@ public class AlongsideView: OptionsView {
                     );
             }
 
-            this.add_option ("drive-harddisk-solidstate", label, details, (button) => {
+            base.add_option ("drive-harddisk-solidstate", label, details, (button) => {
                 unowned string next_label = NEXT_LABEL[partition == -1 ? 0 : 1];
+                button.key_press_event.connect ((event) => handle_key_press (button, event));
                 button.notify["active"].connect (() => {
                     if (button.active) {
-                        this.options.get_children ().foreach ((child) => {
+                        base.options.get_children ().foreach ((child) => {
                             ((Gtk.ToggleButton)child).active = child == button;
                         });
 
@@ -96,6 +97,17 @@ public class AlongsideView: OptionsView {
             });
         }
 
-        this.options.show_all ();
+        base.options.show_all ();
+        base.select_first_option ();
+    }
+
+    private bool handle_key_press (Gtk.Button button, Gdk.EventKey event) {
+        if (event.keyval == Gdk.Key.Return) {
+            button.clicked ();
+            next_button.clicked ();
+            return true;
+        }
+
+        return false;
     }
 }

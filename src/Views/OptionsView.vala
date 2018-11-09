@@ -20,8 +20,6 @@ public class OptionsView: AbstractInstallerView {
     }
 
     construct {
-        
-
         options = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
         options.valign = Gtk.Align.CENTER;
         options.halign = Gtk.Align.CENTER;
@@ -50,10 +48,18 @@ public class OptionsView: AbstractInstallerView {
         next_button = new Gtk.Button ();
         next_button.get_style_context ().add_class (Gtk.STYLE_CLASS_DESTRUCTIVE_ACTION);
         next_button.sensitive = false;
+        next_button.can_default = true;
         next_button.clicked.connect (() => next ());
 
         action_area.add (next_button);
         action_area.homogeneous = true;
+    }
+
+    protected void select_first_option () {
+        weak Gtk.Widget first = options.get_children ().nth_data (0);
+        if (first != null) {
+            first.grab_focus ();
+        }
     }
 
     protected void add_option (string image, string message, string? desc, ToggleButtonFn func) {

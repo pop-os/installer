@@ -11,9 +11,9 @@ public class RefreshView: OptionsView {
     }
 
     construct {
-        base.next_button.label = _("Refresh Install");
-        base.next.connect (() => next_step (retain_old));
-        this.show_all ();
+        next_button.label = _("Refresh Install");
+        next.connect (() => next_step (retain_old));
+        show_all ();
     }
 
     public void update_options () {
@@ -34,15 +34,16 @@ public class RefreshView: OptionsView {
             var device_path = Utils.string_from_utf8 (partition.get_device_path ());
             bool can_retain_old = option.can_retain_old ();
 
-            this.add_option (
+            base.add_option (
                 // TODO: Replace this with the distribution's logo.
                 "drive-harddisk-solidstate",
                 _("%s (%s) at %s").printf (os, version, device_path),
                 null,
                 (button) => {
+                    button.key_press_event.connect ((event) => handle_key_press (button, event));
                     button.notify["active"].connect (() => {
                         if (button.active) {
-                            this.options.get_children ().foreach ((child) => {
+                            base.options.get_children ().foreach ((child) => {
                                 ((Gtk.ToggleButton)child).active = child == button;
                             });
 
@@ -53,6 +54,7 @@ public class RefreshView: OptionsView {
                             };
 
                             next_button.sensitive = true;
+                            next_button.has_default = true;
                             retain_old = can_retain_old;
                         } else {
                             next_button.sensitive = false;
@@ -63,6 +65,17 @@ public class RefreshView: OptionsView {
             );
         }
 
-        this.options.show_all ();
+        base.options.show_all ();
+        base.select_first_option ();
+    }
+
+    private bool handle_key_press (Gtk.Button button, Gdk.EventKey event) {
+        if (event.keyval == Gdk.Key.Return) {
+            button.clicked ();
+            next_button.clicked ();
+            return true;
+        }
+
+        return false;
     }
 }

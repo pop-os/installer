@@ -108,6 +108,8 @@ public class ResizeView : AbstractInstallerView {
         content_area.attach (grid,        1, 0, 1, 2);
 
         var next_button = new Gtk.Button.with_label (_("Resize and Install"));
+        next_button.can_default = true;
+        next_button.has_default = true;
         next_button.get_style_context ().add_class (Gtk.STYLE_CLASS_DESTRUCTIVE_ACTION);
         next_button.clicked.connect (() => {
             unowned Distinst.InstallOption? selected = InstallOptions.get_default ().get_selected_option();
