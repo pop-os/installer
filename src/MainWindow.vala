@@ -31,6 +31,7 @@ public class Installer.MainWindow : Gtk.Dialog {
     private PartitioningView partitioning_view;
     private ProgressView progress_view;
     private RefreshView refresh_view;
+    private ResizeView resize_view;
     private SuccessView success_view;
     private TryInstallView try_install_view;
     private bool check_ignored = false;
@@ -73,6 +74,7 @@ public class Installer.MainWindow : Gtk.Dialog {
      * We need to load all the view after the language has being chosen and set.
      * We need to rebuild the view everytime the next button is clicked to reflect language changes.
      */
+
 
     private void load_keyboard_view () {
         if (keyboard_layout_view != null) {
@@ -137,11 +139,15 @@ public class Installer.MainWindow : Gtk.Dialog {
 
     private void load_alongside_view () {
         if (alongside_view == null) {
-            alongside_view = new AlongsideView (minimum_disk_size);
+            alongside_view = new AlongsideView ();
             alongside_view.previous_view = try_install_view;
-            //  alongside_view.next_step.connect (() => {
-            //      load_encrypt_view ();
-            //  });
+            alongside_view.next_step.connect ((set_scale, os, free, total) => {
+                if (set_scale) {
+                    load_resize_view (os, free, total);
+                } else {
+                    load_encrypt_view ();
+                }
+            });
 
             alongside_view.cancel.connect (() => {
                 stack.visible_child = try_install_view;
@@ -149,15 +155,24 @@ public class Installer.MainWindow : Gtk.Dialog {
             stack.add (alongside_view);
         }
 
-        //  alongside_view.next_button.label = _("Choose New Size");
-        //  alongside_view.back_button.visible = true;
-        //  alongside_view.cancel_button.visible = false;
-        //  var ctx = alongside_view.next_button.get_style_context ();
-        //  ctx.add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
-        //  ctx.remove_class (Gtk.STYLE_CLASS_DESTRUCTIVE_ACTION);
-
         stack.visible_child = alongside_view;
         alongside_view.update_options ();
+    }
+
+    private void load_resize_view (string os, uint64 free, uint64 total) {
+        if (resize_view == null) {
+            resize_view = new ResizeView (minimum_disk_size);
+            resize_view.previous_view = alongside_view;
+            resize_view.next_step.connect (load_encrypt_view);
+            resize_view.cancel.connect (() => {
+                stack.visible_child = alongside_view;
+            });
+
+            stack.add (resize_view);
+        }
+
+        stack.visible_child = resize_view;
+        resize_view.update_options (os, free, total);
     }
 
     private void load_refresh_view () {

@@ -60,6 +60,7 @@ public class OptionsView: AbstractInstallerView {
         next_button.clicked.connect (() => next ());
 
         action_area.add (next_button);
+        action_area.homogeneous = true;
     }
 
     protected void add_option (string image, string message, string? desc, ToggleButtonFn func) {
