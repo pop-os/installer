@@ -23,15 +23,17 @@ public class AlongsideView: OptionsView {
         foreach (var option in install_options.get_options ().get_alongside_options ()) {
             var os = Utils.string_from_utf8 (option.get_os ());
             var device = Utils.string_from_utf8 (option.get_device ());
-            var free = option.get_sectors_free () / 2048;
+            var free = option.get_sectors_free () * 512;
+            var total = option.get_sectors_total () * 512;
             var partition = option.get_partition ();
+            var path = Utils.string_from_utf8 (option.get_path ());
 
             this.add_option (
                 "drive-harddisk-solidstate",
                 _("%s on %s").printf (os, device),
                 (partition == -1)
-                    ? _("Unused Space (%lld MiB free)").printf (free)
-                    : _("Shrink Partition (%lld MiB free)").printf (free),
+                    ? _("Unused Space (%s free)").printf (GLib.format_size (free))
+                    : _("Shrink %s (%s of %s free)").printf (path, GLib.format_size (free), GLib.format_size (total)),
                 (button) => {
                     if (button.active) {
                         this.options.get_children ().foreach ((child) => {
