@@ -136,10 +136,6 @@ public class Installer.TryInstallView : AbstractInstallerView {
             () => custom_step ()
         );
 
-        var sg_action_area = new Gtk.SizeGroup (Gtk.SizeGroupMode.BOTH);
-        sg_action_area.add_widget (back_button);
-        sg_action_area.add_widget (next_button);
-
         action_area.add (back_button);
         action_area.add (next_button);
         action_area.add (demo_button);

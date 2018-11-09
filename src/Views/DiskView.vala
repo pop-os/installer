@@ -26,7 +26,11 @@ public class Installer.DiskView : AbstractInstallerView {
     private Gtk.Stack load_stack;
 
     public DiskView () {
-        Object (cancellable: true);
+        Object (
+            cancellable: true,
+            artwork: "disks",
+            title: _("Select a drive")
+        );
     }
 
     construct {
@@ -48,10 +52,6 @@ public class Installer.DiskView : AbstractInstallerView {
         var install_image = new Gtk.Image.from_icon_name ("system-os-installer", Gtk.IconSize.DIALOG);
         install_image.valign = Gtk.Align.START;
 
-        var install_label = new Gtk.Label (_("Select a drive"));
-        install_label.max_width_chars = 60;
-        install_label.valign = Gtk.Align.START;
-        install_label.get_style_context ().add_class ("h2");
 
         var install_desc_label = new Gtk.Label (_("This will erase all data on the selected drive. If you have not backed your data up, you can cancel the installation and use Demo Mode."));
         install_desc_label.hexpand = true;
@@ -80,13 +80,6 @@ public class Installer.DiskView : AbstractInstallerView {
         load_stack.add_named (load_grid, "loading");
         load_stack.add_named (disk_scrolled, "disk");
 
-        var artwork = new Gtk.Grid ();
-        artwork.get_style_context ().add_class ("disks");
-        artwork.get_style_context ().add_class ("artwork");
-        artwork.vexpand = true;
-
-        content_area.attach (artwork, 0, 0);
-        content_area.attach (install_label, 0, 1);
         content_area.attach (load_stack, 1, 0, 1, 2);
 
         next_button = new Gtk.Button.with_label (_("Erase and Install"));
