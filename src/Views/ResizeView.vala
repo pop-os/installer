@@ -51,7 +51,7 @@ public class ResizeView : AbstractInstallerView {
         secondary_label.wrap = true;
         secondary_label.xalign = 0;
 
-        scale = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, null);
+        scale = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, new Gtk.Adjustment (0, 0, 0, 204800, 2048000, 2048000));
         scale.draw_value = false;
         scale.inverted = true;
         
@@ -130,6 +130,8 @@ public class ResizeView : AbstractInstallerView {
             constrain_scale (scale);
             update_size_labels ((int) scale.get_value ());
         });
+
+        scale.grab_focus ();
     }
 
     public void update_options (string os, uint64 free, uint64 total) {
