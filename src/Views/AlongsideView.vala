@@ -53,6 +53,8 @@ public class AlongsideView: OptionsView {
             var partition = option.get_partition ();
             var path = Utils.string_from_utf8 (option.get_path ());
 
+            string logo = Utils.get_distribution_logo_from_alongside (option);
+
             string label;
             string details;
             if (partition == -1) {
@@ -67,7 +69,7 @@ public class AlongsideView: OptionsView {
                     );
             }
 
-            base.add_option ("drive-harddisk-solidstate", label, details, (button) => {
+            base.add_option (logo, label, details, (button) => {
                 unowned string next_label = NEXT_LABEL[partition == -1 ? 0 : 1];
                 button.key_press_event.connect ((event) => handle_key_press (button, event));
                 button.notify["active"].connect (() => {

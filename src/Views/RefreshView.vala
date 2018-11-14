@@ -24,6 +24,11 @@ public class RefreshView: OptionsView {
             var os = Utils.string_from_utf8 (option.get_os_name ());
             var version = Utils.string_from_utf8 (option.get_os_version ());
             var uuid = Utils.string_from_utf8 (option.get_root_part ());
+            Distinst.OsRelease release;
+            string? override_logo = null;
+            if (option.get_os_release (out release) != 0) {
+                override_logo = "tux";
+            }
 
             unowned Distinst.Partition? partition = disks.get_partition_by_uuid (uuid);
             if (partition == null) {
@@ -36,7 +41,7 @@ public class RefreshView: OptionsView {
 
             base.add_option (
                 // TODO: Replace this with the distribution's logo.
-                "drive-harddisk-solidstate",
+                (override_logo == null) ? Utils.get_distribution_logo (release) : override_logo,
                 _("%s (%s) at %s").printf (os, version, device_path),
                 null,
                 (button) => {

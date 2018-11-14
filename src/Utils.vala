@@ -158,4 +158,72 @@ namespace Utils {
 
         return seat_instance;
     }
+
+    string get_distribution_logo_from_alongside (Distinst.AlongsideOption option) {
+    if (option.is_linux ()) {
+        Distinst.OsRelease os_release;
+        if (option.get_os_release (out os_release) == 0) {
+            return get_distribution_logo (os_release);
+        } else {
+            return "tux";
+        }
+    } else if (option.is_mac_os ()) {
+        return "drive-harddisk-solidstate";
+    } else if (option.is_windows ()) {
+        return "distributor-logo-windows";
+    } else {
+        return "drive-harddisk-solidstate";
+    }
+}
+
+string get_distribution_logo (Distinst.OsRelease os_release) {
+    switch (os_release.name) {
+        case "Antergos":
+            return "distributor-logo-antergos";
+        case "Chakra":
+            return "distributor-logo-chakra";
+        case "elementary":
+            return "distributor-logo-elementary";
+        case "Korora":
+            return "distributor-logo-korora";
+        case "Kubuntu":
+            return "distributor-logo-kubuntu";
+        case "Linux Mint":
+            return "distributor-logo-linux-mint";
+        case "Lubuntu":
+            return "distributor-logo-lubuntu";
+        case "Mageia":
+            return "distributor-logo-mageia";
+        case "Manjaro":
+            return "distributor-logo-manjaro";
+        case "OpenSUSE":
+            return "distributor-logo-opensuse";
+        case "Pop!_OS":
+            return "distributor-logo-popos";
+        case "Ubuntu MATE":
+            return "distributor-logo-ubuntu-mate";
+        default:
+            switch (os_release.id) {
+                case "centos":
+                    return "distributor-logo-centos";
+                case "ubuntu":
+                    return "distributor-logo-ubuntu";
+                default:
+                    switch (os_release.id_like) {
+                        case "archlinux":
+                            return "distributor-logo-archlinux";
+                        case "debian":
+                            return "distributor-logo-debian";
+                        case "fedora":
+                            return "distributor-logo-fedora";
+                        case "gentoo":
+                            return "distributor-logo-gentoo";
+                        default:
+                            return "tux";
+                    }
+            }
+        }
+
+        return "tux";
+    }
 }
