@@ -53,6 +53,10 @@ public class AlongsideView: OptionsView {
             var partition = option.get_partition ();
             var path = Utils.string_from_utf8 (option.get_path ());
 
+            if (os == "none") {
+                os = "Partition";
+            }
+
             string logo = Utils.get_distribution_logo_from_alongside (option);
 
             string label;
