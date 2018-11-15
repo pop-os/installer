@@ -36,11 +36,11 @@ public class Installer.LanguageView : AbstractInstallerView {
         select_label.wrap = true;
 
         var select_stack = new Gtk.Stack ();
-        select_stack.valign = Gtk.Align.START;
         select_stack.get_style_context ().add_class ("h2");
         select_stack.transition_type = Gtk.StackTransitionType.CROSSFADE;
         select_stack.add (select_label);
         select_stack.set_visible_child (select_label);
+        select_stack.margin_bottom = 30;
 
         Object (
             artwork: "language",

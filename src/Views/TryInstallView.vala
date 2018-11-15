@@ -46,6 +46,7 @@ public class Installer.TryInstallView : AbstractInstallerView {
         var type_label = new Gtk.Label (_("Install"));
         type_label.hexpand = true;
         type_label.get_style_context ().add_class ("h2");
+        type_label.margin_bottom = 18;
 
         var artwork = new Gtk.Grid ();
         artwork.get_style_context ().add_class ("try-install");

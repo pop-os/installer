@@ -31,19 +31,13 @@ public class ResizeView : AbstractInstallerView {
     public ResizeView (uint64 minimum_size) {
         Object (
             cancellable: true,
-            minimum_required: minimum_size
+            minimum_required: minimum_size,
+            artwork: "disks",
+            title: _("Resize OS")
         );
     }
 
     construct {
-        var image = new Gtk.Image.from_icon_name ("drive-harddisk", Gtk.IconSize.DIALOG);
-        image.vexpand = true;
-        image.valign = Gtk.Align.END;
-
-        var title_label = new Gtk.Label (_("Resize OS"));
-        title_label.valign = Gtk.Align.START;
-        title_label.get_style_context ().add_class ("h2");
-
         var secondary_label = new Gtk.Label (
             _("Each operating system needs space on your device. Drag the handle below to set how much space each operating system gets.")
         );
@@ -97,14 +91,9 @@ public class ResizeView : AbstractInstallerView {
         grid.attach (secondary_label, 0, 0);
         grid.attach (scale_grid,      0, 1);
 
-        content_area.column_homogeneous = true;
-        content_area.halign = Gtk.Align.CENTER;
         content_area.margin = 48;
         content_area.margin_start = content_area.margin_end = 12;
-        content_area.valign = Gtk.Align.CENTER;
 
-        content_area.attach (image,       0, 0);
-        content_area.attach (title_label, 0, 1);
         content_area.attach (grid,        1, 0, 1, 2);
 
         var next_button = new Gtk.Button.with_label (_("Resize and Install"));

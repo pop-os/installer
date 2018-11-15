@@ -64,10 +64,13 @@ public abstract class AbstractInstallerView : Gtk.Grid {
             } else {
                 var temp = new Gtk.Label (title);
                 temp.max_width_chars = 60;
-                temp.valign = Gtk.Align.START;
                 temp.get_style_context ().add_class ("h2");
+                temp.margin_bottom = 42;
                 title_w = (Gtk.Widget) temp;
             }
+
+            title_w.valign = Gtk.Align.START;
+            title_w.halign = Gtk.Align.CENTER;
 
             var artwork = new Gtk.Grid ();
             artwork.get_style_context ().add_class (this.artwork);
@@ -75,7 +78,7 @@ public abstract class AbstractInstallerView : Gtk.Grid {
             artwork.vexpand = true;
 
             content_area.attach (artwork, 0, 0);
-            content_area.attach (title_w,   0, 1);
+            content_area.attach (title_w, 0, 1);
         }
 
         action_area = new Gtk.ButtonBox (Gtk.Orientation.HORIZONTAL);
