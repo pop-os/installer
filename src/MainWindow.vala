@@ -159,7 +159,7 @@ public class Installer.MainWindow : Gtk.Dialog {
         alongside_view.update_options ();
     }
 
-    private void load_resize_view (string os, uint64 free, uint64 total) {
+    private void load_resize_view (string? os, uint64 free, uint64 total) {
         if (resize_view == null) {
             resize_view = new ResizeView (minimum_disk_size);
             resize_view.previous_view = alongside_view;

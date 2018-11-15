@@ -23,6 +23,7 @@ public class ResizeView : AbstractInstallerView {
 
     public uint64 minimum_required { get; set; }
     private uint64 minimum;
+    private uint64 maximum;
     private uint64 used;
     private uint64 total;
 
@@ -33,7 +34,7 @@ public class ResizeView : AbstractInstallerView {
             cancellable: true,
             minimum_required: minimum_size,
             artwork: "disks",
-            title: _("Resize OS")
+            title: ""
         );
     }
 
@@ -94,7 +95,7 @@ public class ResizeView : AbstractInstallerView {
         content_area.margin = 48;
         content_area.margin_start = content_area.margin_end = 12;
 
-        content_area.attach (grid,        1, 0, 1, 2);
+        content_area.attach (grid, 1, 0, 1, 2);
 
         var next_button = new Gtk.Button.with_label (_("Resize and Install"));
         next_button.can_default = true;
@@ -123,23 +124,48 @@ public class ResizeView : AbstractInstallerView {
         scale.grab_focus ();
     }
 
-    public void update_options (string os, uint64 free, uint64 total) {
+    public void update_options (string? os, uint64 free, uint64 total) {
+        title_label.label = _("Resize %s").printf (os == null ? _("Partition") : _("OS"));
+
         this.total = total;
         used = total - free;
         minimum = minimum_required > used ? minimum_required + 1 : used + 1;
+        maximum = total - used - InstallOptions.SHRINK_OVERHEAD;
+
+        var quarter = total / 4;
+        var half = quarter * 2;
+        var three_quarters = quarter * 3;
 
         scale.clear_marks ();
         scale.set_range (0, total);
-        scale.add_mark (total / 2, Gtk.PositionType.BOTTOM, "");
+        scale.add_mark (minimum, Gtk.PositionType.BOTTOM, _("Min"));
+
+        if (quarter < maximum && quarter > minimum) {
+            scale.add_mark (quarter, Gtk.PositionType.BOTTOM, "25%");
+        }
+        
+        if (half < maximum && half > minimum) {
+            scale.add_mark (half, Gtk.PositionType.BOTTOM, "50%");
+        }
+
+        if (three_quarters < maximum && three_quarters > minimum) {
+            scale.add_mark (three_quarters, Gtk.PositionType.BOTTOM, "75%");
+        }
+
+        scale.add_mark (maximum, Gtk.PositionType.BOTTOM, _("Max"));
         scale.fill_level = total - used;
         scale.set_value (total / 2);
 
-        other_os_label.label = os;
+            
+        other_os_label.label = os == null ? _("Partition") : os;
     }
 
     private void constrain_scale (Gtk.Scale scale) {
-        if (scale.get_value () < minimum) {
+        var scale_value = scale.get_value ();
+        if (scale_value < minimum) {
             scale.set_value (minimum);
+        } else if (scale_value > maximum) {
+            scale.set_value (maximum);
         }
     }
 

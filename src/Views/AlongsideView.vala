@@ -7,7 +7,7 @@
  * - Installing to the largest unused region on a disk, if possible.
  */
 public class AlongsideView: OptionsView {
-    public signal void next_step (bool use_scale, string os, uint64 free, uint64 total);
+    public signal void next_step (bool use_scale, string? os, uint64 free, uint64 total);
 
     // Whether to use the resize view for choosing a size or not.
     public bool set_scale = false;
@@ -16,10 +16,10 @@ public class AlongsideView: OptionsView {
     // The number of total sectors that the option has.
     public uint64 selected_total = 0;
     // The OS that is installed to, or may have ownership of, the option.
-    public string selected_os = "";
+    public string? selected_os;
 
     // Possible labels that the next button will have, depending on which option is selected.
-    private string NEXT_LABEL[3];
+    private string NEXT_LABEL[4];
 
     public AlongsideView () {
         Object (
@@ -30,13 +30,14 @@ public class AlongsideView: OptionsView {
     }
 
     construct {
-        NEXT_LABEL = new string[3] {
+        NEXT_LABEL = new string[4] {
             _("Install"),
+            _("Resize Partition"),
             _("Resize OS"),
-            _("Install Alongside")
+            _("Install Alongside"),
         };
 
-        next_button.label = NEXT_LABEL[2];
+        next_button.label = NEXT_LABEL[3];
         next.connect (() => next_step (set_scale, selected_os, selected_free, selected_total));
         show_all ();
     }
@@ -46,17 +47,14 @@ public class AlongsideView: OptionsView {
         base.clear_options ();
         var install_options = InstallOptions.get_default ();
         foreach (var option in install_options.get_options ().get_alongside_options ()) {
-            var os = Utils.string_from_utf8 (option.get_os ());
+            string? os = Utils.string_from_utf8 (option.get_os ());
+            os = os == "none" ? null : os;
+
             var device = Utils.string_from_utf8 (option.get_device ());
             var free = option.get_sectors_free ();
             var total = option.get_sectors_total ();
             var partition = option.get_partition ();
             var path = Utils.string_from_utf8 (option.get_path ());
-
-            if (os == "none") {
-                os = "Partition";
-            }
-
             string logo = Utils.get_distribution_logo_from_alongside (option);
 
             string label;
@@ -65,7 +63,7 @@ public class AlongsideView: OptionsView {
                 label = _("Unused space on %s").printf (device);
                 details = _("%s available").printf (GLib.format_size (free * 512));
             } else {
-                label = _("%s on %s").printf (os, device);
+                label = _("%s on %s").printf (os == null ? _("Partition") : os, device);
                 details = _("Shrink %s (%s free)")
                     .printf (
                         path,
@@ -74,7 +72,15 @@ public class AlongsideView: OptionsView {
             }
 
             base.add_option (logo, label, details, (button) => {
-                unowned string next_label = NEXT_LABEL[partition == -1 ? 0 : 1];
+                unowned string next_label;
+                if (partition == -1) {
+                    next_label = NEXT_LABEL[0];
+                } else if (os == null) {
+                    next_label = NEXT_LABEL[1];
+                } else {
+                    next_label = NEXT_LABEL[2];
+                }
+
                 button.key_press_event.connect ((event) => handle_key_press (button, event));
                 button.notify["active"].connect (() => {
                     if (button.active) {
@@ -96,7 +102,7 @@ public class AlongsideView: OptionsView {
                         next_button.label = next_label;
                         next_button.sensitive = true;
                     } else {
-                        next_button.label = NEXT_LABEL[2];
+                        next_button.label = NEXT_LABEL[3];
                         next_button.sensitive = false;
                     }
                 });

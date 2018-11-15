@@ -24,6 +24,7 @@ public abstract class AbstractInstallerView : Gtk.Grid {
 
     public string artwork { get; construct; }
     public string title { get; construct; }
+    public Gtk.Label? title_label;
     public Gtk.Widget? title_widget { get; construct; }
 
     public signal void cancel ();
@@ -62,11 +63,11 @@ public abstract class AbstractInstallerView : Gtk.Grid {
             if (title_widget != null) {
                 title_w = title_widget;
             } else {
-                var temp = new Gtk.Label (title);
-                temp.max_width_chars = 60;
-                temp.get_style_context ().add_class ("h2");
-                temp.margin_bottom = 42;
-                title_w = (Gtk.Widget) temp;
+                title_label = new Gtk.Label (title);
+                title_label.max_width_chars = 60;
+                title_label.get_style_context ().add_class ("h2");
+                title_label.margin_bottom = 42;
+                title_w = (Gtk.Widget) title_label;
             }
 
             title_w.valign = Gtk.Align.START;
