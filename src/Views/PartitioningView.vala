@@ -139,6 +139,10 @@ public class Installer.PartitioningView : AbstractInstallerView {
         label_sizer = new Gtk.SizeGroup (Gtk.SizeGroupMode.BOTH);
 
         foreach (unowned Distinst.Disk disk in disks.list ()) {
+            if (disk.is_read_only ()) {
+                continue;
+            }
+
             // Skip root disk or live disk
             if (!InstallOptions.get_default ().has_recovery () && (disk.contains_mount ("/", disks) || disk.contains_mount ("/cdrom", disks))) {
                 continue;
