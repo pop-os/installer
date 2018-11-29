@@ -107,6 +107,8 @@ public class Installer.PartitioningView : AbstractInstallerView {
         next_button.get_style_context ().add_class (Gtk.STYLE_CLASS_DESTRUCTIVE_ACTION);
         next_button.sensitive = false;
 
+        action_area.homogeneous = false;
+
         action_area.add (help_button);
         action_area.set_child_secondary (help_button, true);
         action_area.set_child_non_homogeneous (help_button, true);
