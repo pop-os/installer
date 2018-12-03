@@ -92,9 +92,6 @@ public class ResizeView : AbstractInstallerView {
         grid.attach (secondary_label, 0, 0);
         grid.attach (scale_grid,      0, 1);
 
-        content_area.margin = 48;
-        content_area.margin_start = content_area.margin_end = 12;
-
         content_area.attach (grid, 1, 0, 1, 2);
 
         var next_button = new Gtk.Button.with_label (_("Resize and Install"));
