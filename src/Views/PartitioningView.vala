@@ -120,18 +120,48 @@ public class Installer.PartitioningView : AbstractInstallerView {
         action_area.add (back_button);
         action_area.add (next_button);
 
+        // Display a help dialog when the help_button is clicked.
+        //
+        // Ensures that only one instance of the help dialog is active at
+        // given time.
+        var dialog_open = false;
         help_button.clicked.connect (() => {
-            // FIXME: Only allow one instance
-            help_dialog = new HelpDialog ();
-            help_dialog.transient_for = (Gtk.Window) get_toplevel ();
+            if (!dialog_open) {
+                dialog_open = true;
+                help_dialog = new HelpDialog ();
+                help_dialog.transient_for = (Gtk.Window) get_toplevel ();
+                help_dialog.delete_event.connect (() => {
+                    dialog_open = false;
+                    return false;
+                });
+            }
         });
-        modify_partitions_button.clicked.connect (() => open_partition_editor ());
+
+        // Opens GParted when the modify_partitions_button is clicked.
+        //
+        // The extra logic here will prevent the subprocess from opening
+        // multiple times in succession when this button is clicked multiple
+        // times.
+        modify_partitions_button.clicked.connect (() => {
+            if (modify_partitions_button.sensitive) {
+                modify_partitions_button.sensitive = false;
+                Idle.add (() => {
+                    open_partition_editor ();
+                    Idle.add (() => {
+                        modify_partitions_button.sensitive = true;
+                        return false;
+                    });
+                    return false;
+                });
+            }
+        });
+
         back_button.clicked.connect (() => {
             Distinst.deactivate_logical_devices ();
             ((Gtk.Stack) get_parent ()).visible_child = previous_view;
         });
-        next_button.clicked.connect (() => next_step ());
 
+        next_button.clicked.connect (() => next_step ());
         show_all ();
     }
 
