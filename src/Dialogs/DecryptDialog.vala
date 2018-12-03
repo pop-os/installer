@@ -21,6 +21,9 @@
 public class DecryptDialog: Gtk.Dialog {
     private Gtk.ListBox partition_list;
     private unowned string selected_device;
+    private Gtk.Entry pass_entry;
+    private Gtk.Entry name_entry;
+    private Gtk.Button unlock_button;
 
     public DecryptDialog () {
         Object (
@@ -67,17 +70,24 @@ public class DecryptDialog: Gtk.Dialog {
         var pass_label = new Gtk.Label (_("Password:"));
         pass_label.halign = Gtk.Align.END;
 
-        var pass_entry = new Gtk.Entry ();
+        pass_entry = new Gtk.Entry ();
+        pass_entry.activates_default = true;
         pass_entry.hexpand = true;
         pass_entry.input_purpose = Gtk.InputPurpose.PASSWORD;
         pass_entry.visibility = false;
+        pass_entry.changed.connect (set_unlock_sensitivity);
 
         var name_label = new Gtk.Label (_("Device name:"));
         name_label.halign = Gtk.Align.END;
 
-        var name_entry = new Gtk.Entry ();
+        name_entry = new Gtk.Entry ();
+        name_entry.activates_default = true;
         name_entry.hexpand = true;
         name_entry.text = "cryptdata"; // Set a sane default
+        name_entry.changed.connect (() => {
+            name_constraints ();
+            set_unlock_sensitivity ();
+        });
 
         var entry_grid = new Gtk.Grid ();
         entry_grid.column_spacing = 12;
@@ -145,13 +155,17 @@ public class DecryptDialog: Gtk.Dialog {
 
         var select_button = (Gtk.Button) add_button (_("Select"), Gtk.ResponseType.NONE);
         select_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
+        select_button.can_default = true;
 
         var back_button = (Gtk.Button) add_button (_("Back"), Gtk.ResponseType.NONE);
         back_button.hide ();
 
-        var unlock_button = (Gtk.Button) add_button (_("Unlock"), Gtk.ResponseType.NONE);
+        unlock_button = (Gtk.Button) add_button (_("Unlock"), Gtk.ResponseType.NONE);
+        unlock_button.can_default = true;
         unlock_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
         unlock_button.hide ();
+        unlock_button.sensitive = false;
+        unlock_button.can_default = true;
         unlock_button.clicked.connect (() => {
             string pv = name_entry.get_text ();
             string pass = pass_entry.get_text ();
@@ -176,6 +190,8 @@ public class DecryptDialog: Gtk.Dialog {
 
         partition_list.row_selected.connect ((row) => {
             if (row == null) {
+                select_button.has_default = false;
+                select_button.sensitive = false;
                 return;
             }
 
@@ -186,6 +202,9 @@ public class DecryptDialog: Gtk.Dialog {
                     break;
                 }
             }
+
+            select_button.sensitive = true;
+            select_button.has_default = true;
         });
 
         cancel_button.clicked.connect (() => destroy ());
@@ -196,6 +215,9 @@ public class DecryptDialog: Gtk.Dialog {
             select_button.hide ();
             back_button.show ();
             unlock_button.show ();
+
+            pass_entry.has_focus = true;
+            pass_entry.grab_focus ();
         });
 
         back_button.clicked.connect (() => {
@@ -211,6 +233,29 @@ public class DecryptDialog: Gtk.Dialog {
             }
         });
     }
+
+    private void name_constraints () {
+        var text = name_entry.get_text ();
+        var buf = new StringBuilder ();
+        foreach (char character in text.to_utf8 ()) {
+            if (character.isalpha ()) {
+                buf.append_c (character);
+            }
+        }
+
+        name_entry.text = (owned) buf.str;
+    }
+
+    private void set_unlock_sensitivity () {
+        var sensitive = pass_entry.text_length != 0
+            && name_entry.text_length != 0;
+        unlock_button.sensitive = sensitive;
+
+        if (sensitive) {
+            unlock_button.has_default = true;
+        }
+    }
+
     public void update_list () {
         this.partition_list.get_children ().foreach ((child) => child.destroy ());
         var options = InstallOptions.get_default ();
