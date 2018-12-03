@@ -140,6 +140,7 @@ public class Installer.TryInstallView : AbstractInstallerView {
         action_area.add (back_button);
         action_area.add (next_button);
         action_area.add (demo_button);
+        action_area.homogeneous = false;
         action_area.set_child_secondary (demo_button, true);
         action_area.set_child_non_homogeneous (demo_button, true);
 
