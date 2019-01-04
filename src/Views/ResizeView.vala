@@ -23,6 +23,7 @@ public class ResizeView : AbstractInstallerView {
 
     public uint64 minimum_required { get; set; }
     private uint64 minimum;
+    private uint64 true_minimum;
     private uint64 maximum;
     private uint64 used;
     private uint64 total;
@@ -127,7 +128,11 @@ public class ResizeView : AbstractInstallerView {
         this.total = total;
         used = total - free;
         minimum = minimum_required > used ? minimum_required + 1 : used + 1;
+
+        const int HEADROOM = 9765625;
+
         maximum = total - used - InstallOptions.SHRINK_OVERHEAD;
+        true_minimum = minimum + HEADROOM > maximum ? minimum : minimum + HEADROOM;
 
         var quarter = total / 4;
         var half = quarter * 2;
@@ -159,8 +164,8 @@ public class ResizeView : AbstractInstallerView {
 
     private void constrain_scale (Gtk.Scale scale) {
         var scale_value = scale.get_value ();
-        if (scale_value < minimum) {
-            scale.set_value (minimum);
+        if (scale_value < true_minimum) {
+            scale.set_value (true_minimum);
         } else if (scale_value > maximum) {
             scale.set_value (maximum);
         }
