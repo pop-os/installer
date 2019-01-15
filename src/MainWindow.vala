@@ -188,7 +188,7 @@ public class Installer.MainWindow : Gtk.Dialog {
             });
             stack.add (refresh_view);
         }
-        
+
         stack.visible_child = refresh_view;
         refresh_view.update_options ();
     }
@@ -356,7 +356,7 @@ public class Installer.MainWindow : Gtk.Dialog {
             error_view.destroy ();
         }
 
-        error_view = new ErrorView (log);
+        error_view = new ErrorView (log, minimum_disk_size);
         error_view.previous_view = try_install_view;
         stack.add (error_view);
         stack.visible_child = error_view;

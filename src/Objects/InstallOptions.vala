@@ -102,7 +102,7 @@ public class InstallOptions : GLib.Object {
         if (layout_hash != new_hash) {
             layout_hash = new_hash;
             disks = Distinst.Disks.probe ();
-            
+
             _options = new Distinst.InstallOptions (disks, minimum_size, SHRINK_OVERHEAD);
             selected_option = null;
 

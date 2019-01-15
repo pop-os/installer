@@ -40,7 +40,6 @@ public class RefreshView: OptionsView {
             bool can_retain_old = option.can_retain_old ();
 
             base.add_option (
-                // TODO: Replace this with the distribution's logo.
                 (override_logo == null) ? Utils.get_distribution_logo (release) : override_logo,
                 _("%s (%s) at %s").printf (os, version, device_path),
                 null,

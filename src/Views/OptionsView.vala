@@ -6,7 +6,7 @@ public class OptionsView: AbstractInstallerView {
 
     public Gtk.Button next_button;
 
-    
+
     public string? description { get; construct; }
 
     public signal void next ();
@@ -40,7 +40,7 @@ public class OptionsView: AbstractInstallerView {
             description.wrap = true;
             content.add (description);
         }
-        
+
         content.add (scroller);
 
         content_area.attach (content, 1, 0, 1, 2);
@@ -56,9 +56,11 @@ public class OptionsView: AbstractInstallerView {
     }
 
     protected void select_first_option () {
-        weak Gtk.Widget first = options.get_children ().nth_data (0);
-        if (first != null) {
-            first.grab_focus ();
+        weak Gtk.Widget first_option = options.get_children ().nth_data (0);
+        if (first_option != null && first_option is Gtk.ToggleButton) {
+            var button = (Gtk.ToggleButton) first_option;
+            button.grab_focus ();
+            button.clicked ();
         }
     }
 
@@ -79,7 +81,7 @@ public class OptionsView: AbstractInstallerView {
         content.orientation = Gtk.Orientation.VERTICAL;
         content.attach (icon, 0, 0, 1, desc == null ? 1 : 2);
         content.attach (label, 1, 0);
-    
+
         if (desc != null) {
             var desc_label = new Gtk.Label ("<small>%s</small>".printf (desc));
             desc_label.halign = Gtk.Align.START;
