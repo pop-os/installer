@@ -1,8 +1,8 @@
 /**
  * This view is for selecting a location to install alongside an existing operationg system.
- * 
+ *
  * Possible install options on this view are:
- * 
+ *
  * - Shrinking the largest existing partition on a disk, if possible.
  * - Installing to the largest unused region on a disk, if possible.
  */
@@ -61,13 +61,13 @@ public class AlongsideView: OptionsView {
             string details;
             if (partition == -1) {
                 label = _("Unused space on %s").printf (device);
-                details = _("%s available").printf (GLib.format_size (free * 512));
+                details = _("%1.f GiB available").printf ((double) free / SECTORS_AS_GIB);
             } else {
                 label = _("%s on %s").printf (os == null ? _("Partition") : os, device);
-                details = _("Shrink %s (%s free)")
+                details = _("Shrink %s (%1.f GiB free)")
                     .printf (
                         path,
-                        GLib.format_size (free * 512)
+                        (double) free / SECTORS_AS_GIB
                     );
             }
 

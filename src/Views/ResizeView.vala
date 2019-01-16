@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const double SECTORS_AS_GIB = 2 * 1024 * 1024;
+
 public class ResizeView : AbstractInstallerView {
     private Gtk.SpinButton our_os_size_entry { get; set; }
     private Gtk.Label our_os_size_label { get; set; }
@@ -31,7 +33,7 @@ public class ResizeView : AbstractInstallerView {
 
     public signal void next_step ();
 
-    const double SECTOR_AS_GIB = 2 * 1024 * 1024;
+
     const double STEPPING = 100 * 2 * 1024;
 
     public ResizeView (uint64 minimum_size) {
@@ -130,7 +132,7 @@ public class ResizeView : AbstractInstallerView {
 
                 constrain_scale (scale);
                 uint64 our_size = total - (uint64) scale.get_value ();
-                our_os_size_entry.set_value ((double) (total - our_size) / SECTOR_AS_GIB);
+                our_os_size_entry.set_value ((double) (total - our_size) / SECTORS_AS_GIB);
 
                 open = true;
             }
@@ -143,7 +145,7 @@ public class ResizeView : AbstractInstallerView {
                 open = false;
 
                 constrain_entry (our_os_size_entry);
-                scale.set_value (our_os_size_entry.get_value () * SECTOR_AS_GIB);
+                scale.set_value (our_os_size_entry.get_value () * SECTORS_AS_GIB);
 
                 open = true;
             }
@@ -191,8 +193,8 @@ public class ResizeView : AbstractInstallerView {
         other_os_label.label = os == null ? _("Partition") : os;
 
         // Configure the minimum and maximum for the size entry.
-        double min_range = (double) minimum / SECTOR_AS_GIB;
-        double max_range = (double) maximum / SECTOR_AS_GIB;
+        double min_range = (double) minimum / SECTORS_AS_GIB;
+        double max_range = (double) maximum / SECTORS_AS_GIB;
         our_os_size_entry.set_range (min_range, max_range);
         our_os_size_entry.set_increments (0.5, 5);
     }
@@ -208,8 +210,8 @@ public class ResizeView : AbstractInstallerView {
 
     private void constrain_entry (Gtk.SpinButton entry) {
         double entry_value = entry.get_value ();
-        double min = true_minimum / SECTOR_AS_GIB;
-        double max = maximum / SECTOR_AS_GIB;
+        double min = true_minimum / SECTORS_AS_GIB;
+        double max = maximum / SECTORS_AS_GIB;
 
         if (entry_value < min) {
             entry.set_value (min);
@@ -222,13 +224,13 @@ public class ResizeView : AbstractInstallerView {
         uint64 other_os_size = total - our_os_size;
 
         our_os_size_label.label = _("""%s <span alpha="67%">(%s Free)</span>""".printf (
-            "%.1f GiB".printf ((double) our_os_size / SECTOR_AS_GIB),
-            "%.1f GiB".printf ((double) (our_os_size - minimum) / SECTOR_AS_GIB)
+            "%.1f GiB".printf ((double) our_os_size / SECTORS_AS_GIB),
+            "%.1f GiB".printf ((double) (our_os_size - minimum) / SECTORS_AS_GIB)
         ));
 
         other_os_size_label.label = _("""%s <span alpha="67%">(%s Free)</span>""".printf (
-           "%.1f GiB".printf ((double) other_os_size / SECTOR_AS_GIB),
-           "%.1f GiB".printf ((double) (other_os_size - used) / SECTOR_AS_GIB)
+           "%.1f GiB".printf ((double) other_os_size / SECTORS_AS_GIB),
+           "%.1f GiB".printf ((double) (other_os_size - used) / SECTORS_AS_GIB)
         ));
     }
 }
