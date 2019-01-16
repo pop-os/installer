@@ -19,7 +19,7 @@ public class AlongsideView: OptionsView {
     public string? selected_os;
 
     // Possible labels that the next button will have, depending on which option is selected.
-    private string NEXT_LABEL[4];
+    private string NEXT_LABEL[5];
 
     public AlongsideView () {
         Object (
@@ -30,11 +30,12 @@ public class AlongsideView: OptionsView {
     }
 
     construct {
-        NEXT_LABEL = new string[4] {
+        NEXT_LABEL = new string[5] {
             _("Install"),
             _("Resize Partition"),
             _("Resize OS"),
             _("Install Alongside"),
+            _("Erase and Install"),
         };
 
         next_button.label = NEXT_LABEL[3];
@@ -45,7 +46,20 @@ public class AlongsideView: OptionsView {
     // Clears existing options in the view, and creates new installation options.
     public void update_options () {
         base.clear_options ();
+
+        add_alongside_options ();
+
+        if (InstallOptions.get_default ().get_options ().has_erase_options ()) {
+            add_erase_options ();
+        }
+
+        base.options.show_all ();
+        base.select_first_option ();
+    }
+
+    private void add_alongside_options () {
         var install_options = InstallOptions.get_default ();
+
         foreach (var option in install_options.get_options ().get_alongside_options ()) {
             string? os = Utils.string_from_utf8 (option.get_os ());
             os = os == "none" ? null : os;
@@ -61,10 +75,10 @@ public class AlongsideView: OptionsView {
             string details;
             if (partition == -1) {
                 label = _("Unused space on %s").printf (device);
-                details = _("%1.f GiB available").printf ((double) free / SECTORS_AS_GIB);
+                details = _("%.1f GiB available").printf ((double) free / SECTORS_AS_GIB);
             } else {
                 label = _("%s on %s").printf (os == null ? _("Partition") : os, device);
-                details = _("Shrink %s (%1.f GiB free)")
+                details = _("Shrink %s (%.1f GiB free)")
                     .printf (
                         path,
                         (double) free / SECTORS_AS_GIB
@@ -85,7 +99,9 @@ public class AlongsideView: OptionsView {
                 button.notify["active"].connect (() => {
                     if (button.active) {
                         base.options.get_children ().foreach ((child) => {
-                            ((Gtk.ToggleButton)child).active = child == button;
+                            if (child is Gtk.ToggleButton) {
+                                ((Gtk.ToggleButton)child).active = child == button;
+                            }
                         });
 
                         install_options.selected_option = new Distinst.InstallOption () {
@@ -108,9 +124,62 @@ public class AlongsideView: OptionsView {
                 });
             });
         }
+    }
 
-        base.options.show_all ();
-        base.select_first_option ();
+    private void add_erase_options () {
+        var install_options = InstallOptions.get_default ();
+        unowned Distinst.InstallOptions options = install_options.get_updated_options ();
+
+        foreach (unowned Distinst.EraseOption disk in options.get_erase_options ()) {
+            string logo = Utils.string_from_utf8 (disk.get_linux_icon ());
+            string label = Utils.string_from_utf8 (disk.get_model ());
+            string details = "Erase %s %.1f GiB".printf (
+                Utils.string_from_utf8 (disk.get_device_path ()),
+                (double) disk.get_sectors () / SECTORS_AS_GIB
+            );
+
+            base.add_option(logo, label, details, (button) => {
+                if (disk.meets_requirements ()) {
+                    button.key_press_event.connect ((event) => handle_key_press (button, event));
+                    button.notify["active"].connect (() => {
+                        if (button.active) {
+                            base.options.get_children ().foreach ((child) => {
+                                if (child is Gtk.ToggleButton) {
+                                    ((Gtk.ToggleButton)child).active = child == button;
+                                }
+                            });
+
+                            if (install_options.has_recovery ()) {
+                                var recovery = options.get_recovery_option ();
+
+                                install_options.selected_option = new Distinst.InstallOption () {
+                                    tag = Distinst.InstallOptionVariant.RECOVERY,
+                                    option = (void*) recovery,
+                                    encrypt_pass = null
+                                };
+                            } else {
+                                install_options.selected_option = new Distinst.InstallOption () {
+                                    tag = Distinst.InstallOptionVariant.ERASE,
+                                    option = (void*) disk,
+                                    encrypt_pass = null
+                                };
+                            }
+
+                            set_scale = false;
+                            next_button.label = NEXT_LABEL[4];
+                            next_button.sensitive = true;
+                        } else {
+                            next_button.sensitive = false;
+                            next_button.label = NEXT_LABEL[3];
+                        }
+                    });
+                } else {
+                    button.sensitive = false;
+                }
+            });
+        }
+
+        base.sort_sensitive ();
     }
 
     private bool handle_key_press (Gtk.Button button, Gdk.EventKey event) {

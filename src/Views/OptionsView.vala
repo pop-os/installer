@@ -6,7 +6,6 @@ public class OptionsView: AbstractInstallerView {
 
     public Gtk.Button next_button;
 
-
     public string? description { get; construct; }
 
     public signal void next ();
@@ -104,5 +103,20 @@ public class OptionsView: AbstractInstallerView {
 
     protected void clear_options () {
         options.get_children ().foreach ((child) => child.destroy ());
+    }
+
+    protected void sort_sensitive () {
+        Gtk.Widget[] disabled = {};
+
+        foreach (var child in options.get_children ()) {
+            if (!child.sensitive) {
+                disabled += child;
+            }
+        }
+
+        foreach (var child in disabled) {
+            options.remove (child);
+            options.add (child);
+        }
     }
 }
