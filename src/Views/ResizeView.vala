@@ -90,12 +90,12 @@ public class ResizeView : AbstractInstallerView {
         scale_grid.halign = Gtk.Align.FILL;
         scale_grid.row_spacing = 6;
 
-        scale_grid.attach (scale,               0, 3, 2);
+        scale_grid.attach (scale,               0, 2, 2);
         scale_grid.attach (other_os_label,      0, 0);
         scale_grid.attach (other_os_size_label, 0, 1);
         scale_grid.attach (our_os_label,        1, 0);
         scale_grid.attach (our_os_size_label,   1, 1);
-        scale_grid.attach (our_os_size_entry,   1, 2);
+        //  scale_grid.attach (our_os_size_entry,   1, 2);
 
         var grid = new Gtk.Grid ();
         grid.row_spacing = 12;
