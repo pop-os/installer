@@ -16,6 +16,7 @@
  */
 
 public class ResizeView : AbstractInstallerView {
+    private Gtk.SpinButton our_os_size_entry { get; set; }
     private Gtk.Label our_os_size_label { get; set; }
     private Gtk.Label other_os_size_label { get; set; }
     private Gtk.Label other_os_label;
@@ -29,6 +30,9 @@ public class ResizeView : AbstractInstallerView {
     private uint64 total;
 
     public signal void next_step ();
+
+    const double SECTOR_AS_GIB = 2 * 1024 * 1024;
+    const double STEPPING = 100 * 2 * 1024;
 
     public ResizeView (uint64 minimum_size) {
         Object (
@@ -47,10 +51,10 @@ public class ResizeView : AbstractInstallerView {
         secondary_label.wrap = true;
         secondary_label.xalign = 0;
 
-        scale = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, new Gtk.Adjustment (0, 0, 0, 204800, 2048000, 2048000));
+        scale = new Gtk.Scale (Gtk.Orientation.HORIZONTAL, new Gtk.Adjustment (0, 0, 0, STEPPING, STEPPING * 10, STEPPING * 100));
         scale.draw_value = false;
         scale.inverted = true;
-        
+
         scale.show_fill_level = true;
         scale.get_style_context ().add_class (Granite.STYLE_CLASS_ACCENT);
 
@@ -64,12 +68,15 @@ public class ResizeView : AbstractInstallerView {
 
         our_os_size_label = new Gtk.Label ("");
         our_os_size_label.halign = Gtk.Align.END;
-        our_os_size_label.hexpand = true;
         our_os_size_label.use_markup = true;
+        our_os_size_label.hexpand = true;
+
+        our_os_size_entry = new Gtk.SpinButton (null, 1.0, 1);
+        our_os_size_entry.halign = Gtk.Align.END;
+        our_os_size_entry.hexpand = true;
 
         other_os_label = new Gtk.Label (null);
         other_os_label.halign = Gtk.Align.START;
-        other_os_label.hexpand = true;
         other_os_label.get_style_context ().add_class (Granite.STYLE_CLASS_H3_LABEL);
 
         other_os_size_label = new Gtk.Label ("");
@@ -79,12 +86,14 @@ public class ResizeView : AbstractInstallerView {
 
         var scale_grid = new Gtk.Grid ();
         scale_grid.halign = Gtk.Align.FILL;
+        scale_grid.row_spacing = 6;
 
-        scale_grid.attach (scale,               0, 0, 2);
-        scale_grid.attach (other_os_label,      0, 1);
-        scale_grid.attach (our_os_label,        1, 1);
-        scale_grid.attach (other_os_size_label, 0, 2);
-        scale_grid.attach (our_os_size_label,   1, 2);
+        scale_grid.attach (scale,               0, 3, 2);
+        scale_grid.attach (other_os_label,      0, 0);
+        scale_grid.attach (other_os_size_label, 0, 1);
+        scale_grid.attach (our_os_label,        1, 0);
+        scale_grid.attach (our_os_size_label,   1, 1);
+        scale_grid.attach (our_os_size_entry,   1, 2);
 
         var grid = new Gtk.Grid ();
         grid.row_spacing = 12;
@@ -114,9 +123,30 @@ public class ResizeView : AbstractInstallerView {
         update_size_labels ((int) scale.get_value ());
         show_all ();
 
+        bool open = true;
         scale.value_changed.connect (() => {
-            constrain_scale (scale);
-            update_size_labels ((int) scale.get_value ());
+            if (open) {
+                open = false;
+
+                constrain_scale (scale);
+                uint64 our_size = total - (uint64) scale.get_value ();
+                our_os_size_entry.set_value ((double) (total - our_size) / SECTOR_AS_GIB);
+
+                open = true;
+            }
+
+            update_size_labels ((uint64) scale.get_value ());
+        });
+
+        our_os_size_entry.value_changed.connect(() => {
+            if (open) {
+                open = false;
+
+                constrain_entry (our_os_size_entry);
+                scale.set_value (our_os_size_entry.get_value () * SECTOR_AS_GIB);
+
+                open = true;
+            }
         });
 
         scale.grab_focus ();
@@ -129,7 +159,7 @@ public class ResizeView : AbstractInstallerView {
         used = total - free;
         minimum = minimum_required > used ? minimum_required + 1 : used + 1;
 
-        const int HEADROOM = 9765625;
+        const int HEADROOM = 5 * 2 * 1024 * 1024;
 
         maximum = total - used - InstallOptions.SHRINK_OVERHEAD;
         true_minimum = minimum + HEADROOM > maximum ? minimum : minimum + HEADROOM;
@@ -145,7 +175,7 @@ public class ResizeView : AbstractInstallerView {
         if (quarter < maximum && quarter > minimum) {
             scale.add_mark (quarter, Gtk.PositionType.BOTTOM, "25%");
         }
-        
+
         if (half < maximum && half > minimum) {
             scale.add_mark (half, Gtk.PositionType.BOTTOM, "50%");
         }
@@ -158,12 +188,17 @@ public class ResizeView : AbstractInstallerView {
         scale.fill_level = total - used;
         scale.set_value (total / 2);
 
-            
         other_os_label.label = os == null ? _("Partition") : os;
+
+        // Configure the minimum and maximum for the size entry.
+        double min_range = (double) minimum / SECTOR_AS_GIB;
+        double max_range = (double) maximum / SECTOR_AS_GIB;
+        our_os_size_entry.set_range (min_range, max_range);
+        our_os_size_entry.set_increments (0.5, 5);
     }
 
     private void constrain_scale (Gtk.Scale scale) {
-        var scale_value = scale.get_value ();
+        double scale_value = scale.get_value ();
         if (scale_value < true_minimum) {
             scale.set_value (true_minimum);
         } else if (scale_value > maximum) {
@@ -171,17 +206,29 @@ public class ResizeView : AbstractInstallerView {
         }
     }
 
+    private void constrain_entry (Gtk.SpinButton entry) {
+        double entry_value = entry.get_value ();
+        double min = true_minimum / SECTOR_AS_GIB;
+        double max = maximum / SECTOR_AS_GIB;
+
+        if (entry_value < min) {
+            entry.set_value (min);
+        } else if (entry_value > max) {
+            entry.set_value (max);
+        }
+    }
+
     private void update_size_labels (uint64 our_os_size) {
         uint64 other_os_size = total - our_os_size;
 
         our_os_size_label.label = _("""%s <span alpha="67%">(%s Free)</span>""".printf (
-            GLib.format_size (our_os_size * 512),
-            GLib.format_size ((our_os_size - minimum) * 512)
+            "%.1f GiB".printf ((double) our_os_size / SECTOR_AS_GIB),
+            "%.1f GiB".printf ((double) (our_os_size - minimum) / SECTOR_AS_GIB)
         ));
 
         other_os_size_label.label = _("""%s <span alpha="67%">(%s Free)</span>""".printf (
-            GLib.format_size (other_os_size * 512),
-            GLib.format_size ((other_os_size - used) * 512)
+           "%.1f GiB".printf ((double) other_os_size / SECTOR_AS_GIB),
+           "%.1f GiB".printf ((double) (other_os_size - used) / SECTOR_AS_GIB)
         ));
     }
 }

@@ -29,8 +29,8 @@ public class InstallOptions : GLib.Object {
 
     private Gee.ArrayList<string> unlocked_devices { get; set; default = new Gee.ArrayList<string> (); }
 
-    // The amount of free space that should be retained when shrinking (20 GB).
-    public const uint64 SHRINK_OVERHEAD = 39062500;
+    // The amount of free space that should be retained when shrinking (20 GiB).
+    public const uint64 SHRINK_OVERHEAD = 20 * 2 * 1024 * 1024;
 
     public static unowned InstallOptions get_default () {
         if (_options_object == null || _options_object.disks_moved) {
