@@ -53,6 +53,8 @@ public class Installer.TryInstallView : AbstractInstallerView {
         artwork.get_style_context ().add_class ("artwork");
         artwork.vexpand = true;
 
+        var content_overlay = new Gtk.Overlay ();
+
         // TODO: Once we support more options, give an example here
         // ("More options, such as…") if there's space…
         var decrypt_description = new Gtk.Label (_("More options may be available after unlocking encrypted storage"));
@@ -61,6 +63,7 @@ public class Installer.TryInstallView : AbstractInstallerView {
 
         var decrypt_infobar = new Gtk.InfoBar ();
         decrypt_infobar.message_type = Gtk.MessageType.INFO;
+        decrypt_infobar.valign = Gtk.Align.START;
 
         var infobar_action_area = decrypt_infobar.get_action_area () as Gtk.Container;
         infobar_action_area.add (decrypt_button);
@@ -76,11 +79,13 @@ public class Installer.TryInstallView : AbstractInstallerView {
         grid.attach (type_label,    0, 1);
         grid.attach (type_scrolled, 1, 0, 1, 2);
 
+        content_overlay.add (grid);
+        content_overlay.add_overlay (decrypt_infobar);
+
         content_area.margin = 0;
         content_area.valign = Gtk.Align.FILL;
         content_area.column_homogeneous = true;
-        content_area.attach (decrypt_infobar, 0, 0);
-        content_area.attach (grid, 0, 1);
+        content_area.attach (content_overlay, 0, 0);
 
         var back_button = new Gtk.Button.with_label (_("Back"));
         back_button.clicked.connect (() => ((Gtk.Stack) get_parent ()).visible_child = previous_view);
