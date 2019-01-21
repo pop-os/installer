@@ -176,14 +176,7 @@ public class Installer.TryInstallView : AbstractInstallerView {
                     refresh_install_button.visible = options.get_options ().has_refresh_options ();
                     //  alongside_button.visible = options.get_options ().has_alongside_options ();
 
-                    var nlocked = 0;
-                    foreach (unowned Distinst.Partition partition in options.borrow_disks ().get_encrypted_partitions ()) {
-                        string path = Utils.string_from_utf8 (partition.get_device_path ());
-                        if (! options.is_unlocked (path)) {
-                            nlocked += 1;
-                        }
-                    }
-
+                    var nlocked = partitions_locked ();
                     decrypt_infobar.visible = nlocked != 0;
                 }
             });
@@ -194,7 +187,7 @@ public class Installer.TryInstallView : AbstractInstallerView {
         clean_install_button.grab_focus ();
 
         // Hide the info bar if no encrypted partitions are found.
-        decrypt_infobar.visible = options.contains_luks ();
+        decrypt_infobar.visible = partitions_locked () != 0;
 
         refresh_install_button.visible = options.get_options ().has_refresh_options ();
         //  alongside_button.visible = options.get_options ().has_alongside_options ();
@@ -209,4 +202,17 @@ public class Installer.TryInstallView : AbstractInstallerView {
 
         return false;
     }
+}
+
+uint32 partitions_locked () {
+    uint32 nlocked = 0;
+    var options = InstallOptions.get_default ();
+    foreach (unowned Distinst.Partition partition in options.borrow_disks ().get_encrypted_partitions ()) {
+        string path = Utils.string_from_utf8 (partition.get_device_path ());
+        if (! options.is_unlocked (path)) {
+            nlocked += 1;
+        }
+    }
+
+    return nlocked;
 }
