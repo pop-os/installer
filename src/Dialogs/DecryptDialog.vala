@@ -263,8 +263,9 @@ public class DecryptDialog: Gtk.Dialog {
         unowned Distinst.Disks disks = options.borrow_disks ();
         foreach (unowned Distinst.Partition partition in disks.get_encrypted_partitions ()) {
             string path = Utils.string_from_utf8 (partition.get_device_path ());
+            bool is_unlocked = options.is_unlocked (path);
 
-            var lock_icon_name = options.is_unlocked (path) ? "emblem-unlocked" : "dialog-password";
+            var lock_icon_name = is_unlocked ? "emblem-unlocked" : "dialog-password";
             var lock_icon = new Gtk.Image.from_icon_name (lock_icon_name, Gtk.IconSize.MENU);
             lock_icon.margin = 6;
 
@@ -279,6 +280,7 @@ public class DecryptDialog: Gtk.Dialog {
             grid.attach (lock_icon, 1, 0);
 
             var row = new Gtk.ListBoxRow ();
+            row.sensitive = !is_unlocked;
             row.add (grid);
             row.show_all ();
 
