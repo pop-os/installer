@@ -84,6 +84,7 @@ public class InstallOptions : GLib.Object {
         return (owned) disks;
     }
 
+    
     public unowned Distinst.Disks borrow_disks () {
         return disks;
     }

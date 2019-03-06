@@ -31,6 +31,8 @@ public class Installer.MainWindow : Gtk.Dialog {
     private SuccessView success_view;
     private EncryptView encrypt_view;
     private ErrorView error_view;
+    private DecryptionView decryption_view;
+    private UpgradeView upgrade_view;
     private bool check_ignored = false;
 
     private uint64 minimum_disk_size;
@@ -51,20 +53,72 @@ public class Installer.MainWindow : Gtk.Dialog {
     }
 
     construct {
-        language_view = new LanguageView ();
-
         stack = new Gtk.Stack ();
         stack.transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT;
-        stack.add (language_view);
+
+        var options = InstallOptions.get_default ();
+        var recovery_option = options.get_options ().get_recovery_option ();
+        if (null != recovery_option && recovery_option.get_upgrade_mode ()) {
+            var luks_uuid = recovery_option.get_luks_uuid ();
+            var root_uuid = recovery_option.get_root_uuid ();
+            unowned Distinst.Disks disks = options.borrow_disks ();
+
+            if (luks_uuid.length != 0 && (luks_uuid != root_uuid)) {
+                decryption_view = new DecryptionView ();
+                decryption_view.decrypt.connect ((passphrase) => {
+                    if (null != passphrase) {
+                        var uuid = Utils.string_from_utf8 (luks_uuid);
+                        unowned Distinst.Partition? partition = disks.get_partition_by_uuid (uuid);
+
+                        int result = disks.decrypt_partition (
+                            Utils.string_from_utf8 (partition.get_device_path ()),
+                            Distinst.LvmEncryption () {
+                                physical_volume = "cryptdata",
+                                password = passphrase
+                            }
+                        );
+
+                        if (result == 0) {
+                            load_upgrade_view (disks, recovery_option);
+                            return;
+                        }
+
+                        // TODO: on error, display error message
+                    }
+
+                    //
+                });
+                stack.add (decryption_view);
+            } else {
+                load_upgrade_view (disks, recovery_option);
+            }
+        } else {
+            language_view = new LanguageView ();
+            stack.add (language_view);
+
+            const uint64 DEFAULT_MINIMUM_SIZE = 5000000000;
+            minimum_disk_size = Distinst.minimum_disk_size (DEFAULT_MINIMUM_SIZE / 512);
+
+            options.set_minimum_size (minimum_disk_size);
+
+            language_view.next_step.connect (() => load_keyboard_view ());
+        }
 
         get_content_area ().add (stack);
         get_style_context ().add_class ("os-installer");
+    }
 
-        const uint64 DEFAULT_MINIMUM_SIZE = 5000000000;
-        minimum_disk_size = Distinst.minimum_disk_size (DEFAULT_MINIMUM_SIZE / 512);
-        InstallOptions.get_default ().set_minimum_size (minimum_disk_size);
+    private void load_upgrade_view (Distinst.Disks disks, Distinst.RecoveryOption option) {
+        if (null == upgrade_view) {
+            upgrade_view = new UpgradeView ();
+            upgrade_view.on_success.connect (() => load_success_view (null, true));
+            upgrade_view.on_error.connect (() => load_error_view (null, true));
 
-        language_view.next_step.connect (() => load_keyboard_view ());
+            stack.add (upgrade_view);
+        }
+
+        stack.visible_child = upgrade_view;
+        upgrade_view.upgrade (disks, option);
     }
 
     /*
@@ -238,11 +292,11 @@ public class Installer.MainWindow : Gtk.Dialog {
         stack.visible_child = progress_view;
 
         progress_view.on_success.connect (() => {
-            load_success_view (progress_view.get_log ());
+            load_success_view (progress_view.get_log (), false);
         });
 
         progress_view.on_error.connect (() => {
-            load_error_view (progress_view.get_log ());
+            load_error_view (progress_view.get_log (), false);
         });
 
         start_date = new DateTime.now_local ();
@@ -274,12 +328,12 @@ public class Installer.MainWindow : Gtk.Dialog {
         progress_view.start_installation ();
     }
 
-    private void load_success_view (string log) {
+    private void load_success_view (string? log, bool upgrade) {
         if (success_view != null) {
             success_view.destroy ();
         }
 
-        success_view = new SuccessView (log);
+        success_view = new SuccessView (log, upgrade);
         stack.add (success_view);
         stack.visible_child = success_view;
 
@@ -289,12 +343,12 @@ public class Installer.MainWindow : Gtk.Dialog {
         }
     }
 
-    private void load_error_view (string log) {
+    private void load_error_view (string? log, bool upgrade) {
         if (error_view != null) {
             error_view.destroy ();
         }
 
-        error_view = new ErrorView (log);
+        error_view = new ErrorView (log, upgrade);
         error_view.previous_view = try_install_view;
         stack.add (error_view);
         stack.visible_child = error_view;

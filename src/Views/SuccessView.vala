@@ -19,10 +19,11 @@
 public class SuccessView : AbstractInstallerView {
     public static int RESTART_TIMEOUT = 30;
 
-    public string log { get; construct; }
+    public string? log { get; construct; }
+    public bool upgrade { get; construct; }
 
-    public SuccessView (string log) {
-        Object (log: log);
+    public SuccessView (string? log, bool upgrade) {
+        Object (log: log, upgrade: upgrade);
     }
 
     construct {
@@ -31,7 +32,7 @@ public class SuccessView : AbstractInstallerView {
         artwork.get_style_context ().add_class ("artwork");
         artwork.vexpand = true;
 
-        var title_label = new Gtk.Label (_("Continue Setting Up"));
+        var title_label = new Gtk.Label (upgrade ? _("Upgrade Complete") : _("Continue Setting Up"));
         title_label.halign = Gtk.Align.CENTER;
         title_label.max_width_chars = 30;
         title_label.valign = Gtk.Align.START;
@@ -39,7 +40,10 @@ public class SuccessView : AbstractInstallerView {
         title_label.xalign = 0;
         title_label.get_style_context ().add_class ("h2");
 
-        var description_label = new Gtk.Label (_("After restarting you can set up a new user, or you can shut down now and set up a new user later."));
+        var description_label = new Gtk.Label (upgrade
+            ? _("The system has been upgraded to the new release. You may now reboot.")
+            : _("After restarting you can set up a new user, or you can shut down now and set up a new user later."));
+
         description_label.max_width_chars = 52;
         description_label.wrap = true;
         description_label.xalign = 0;
@@ -51,9 +55,12 @@ public class SuccessView : AbstractInstallerView {
         grid.valign = Gtk.Align.CENTER;
         grid.attach (description_label, 0, 0, 1, 1);
 
-        var buffer = new Gtk.TextBuffer (null);
-        buffer.text = log;
-        var terminal = new Terminal (buffer);
+        Terminal? terminal = null;
+        if (null != log) {
+            var buffer = new Gtk.TextBuffer (null);
+            buffer.text = log;
+            terminal = new Terminal (buffer);
+        }
 
         var label_area = new Gtk.Grid ();
         label_area.column_homogeneous = true;
@@ -69,13 +76,15 @@ public class SuccessView : AbstractInstallerView {
         content_stack.add (terminal.container);
         content_area.attach (content_stack, 0, 0, 1, 1);
 
-        terminal.toggled.connect ((active) => {
-            content_stack.visible_child = active
-                ? (Gtk.Widget) terminal.container
-                : (Gtk.Widget) label_area;
-        });
+        if (null != terminal) {
+            terminal.toggled.connect ((active) => {
+                content_stack.visible_child = active
+                    ? (Gtk.Widget) terminal.container
+                    : (Gtk.Widget) label_area;
+            });
 
-        action_area.add (terminal.toggle);
+            action_area.add (terminal.toggle);
+        }
 
         var shutdown_button = new Gtk.Button.with_label (_("Shut Down"));
         shutdown_button.clicked.connect (Utils.shutdown);
