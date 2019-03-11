@@ -10,9 +10,15 @@
 #export DH_VERBOSE=1
 
 export CCACHE_DISABLE=1
+CLEAN ?= 1
 
 %:
 	dh $@ --buildsystem=meson
+
+override_dh_auto_clean:
+ifeq ($(CLEAN),1)
+	dh_auto_clean
+endif
 
 override_dh_install:
 	dh_install --fail-missing
