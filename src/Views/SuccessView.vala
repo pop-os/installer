@@ -73,10 +73,10 @@ public class SuccessView : AbstractInstallerView {
         var content_stack = new Gtk.Stack ();
         content_stack.transition_type = Gtk.StackTransitionType.OVER_UP_DOWN;
         content_stack.add (label_area);
-        content_stack.add (terminal.container);
         content_area.attach (content_stack, 0, 0, 1, 1);
 
         if (null != terminal) {
+            content_stack.add (terminal.container);
             terminal.toggled.connect ((active) => {
                 content_stack.visible_child = active
                     ? (Gtk.Widget) terminal.container

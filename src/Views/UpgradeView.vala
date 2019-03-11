@@ -12,7 +12,7 @@ public class Installer.UpgradeView : AbstractInstallerView {
         artwork.get_style_context ().add_class ("artwork");
         artwork.vexpand = true;
 
-        var label = new Gtk.Label (_("Upgrade release"));
+        var label = new Gtk.Label (_("Upgrade OS"));
         label.max_width_chars = 60;
         label.valign = Gtk.Align.START;
         label.get_style_context ().add_class ("h2");
@@ -21,18 +21,21 @@ public class Installer.UpgradeView : AbstractInstallerView {
         desc_label.hexpand = true;
         desc_label.max_width_chars = 60;
         desc_label.wrap = true;
+        desc_label.get_style_context ().add_class ("h3");
 
         bar = new Gtk.ProgressBar ();
-        bar.text = "Upgrade in process";
+        bar.text = _("Initializing upgrade process");
         bar.show_text = true;
         bar.pulse_step = 0.05;
+        bar.ellipsize = Pango.EllipsizeMode.END;
+        bar.hexpand = true;
 
         var progress = new Gtk.Grid ();
-        progress.halign = Gtk.Align.CENTER;
         progress.valign = Gtk.Align.CENTER;
         progress.orientation = Gtk.Orientation.VERTICAL;
         progress.vexpand = true;
-        progress.row_spacing = 6;
+        progress.hexpand = true;
+        progress.row_spacing = 24;
         progress.attach (desc_label, 0, 0, 1, 1);
         progress.attach (bar, 0, 1, 1, 1);
 
@@ -58,7 +61,7 @@ public class Installer.UpgradeView : AbstractInstallerView {
 
             // Ensure that a progress of 100 is always given at the end.
             upgrade_callback (Distinst.UpgradeEvent () {
-                tag = Distinst.UpgradeTag.PROGRESS,
+                tag = Distinst.UpgradeTag.PACKAGE_PROGRESS,
                 percent = 100
             });
 
@@ -79,30 +82,43 @@ public class Installer.UpgradeView : AbstractInstallerView {
     private void upgrade_callback (Distinst.UpgradeEvent event) {
         switch (event.tag) {
             case Distinst.UpgradeTag.ATTEMPTING_REPAIR:
-                desc_label.label = _("Attempting to repair the install");
+                desc_label.label = _("An error occurred while upgrading the system. Attempting to repair the issue.");
                 break;
             case Distinst.UpgradeTag.ATTEMPTING_UPGRADE:
-                desc_label.label = _("Attempting to upgrade the install");
+                desc_label.label = _("System is being upgraded. This process may take a while. Do not reboot the system, and keep it plugged in.");
                 break;
-            case Distinst.UpgradeTag.DPKG_INFO:
-                bar.text = _("dpkg-info: %s").printf (Utils.string_from_utf8 (event.message));
+            case Distinst.UpgradeTag.PACKAGE_PROCESSING:
+                bar.text = _("Processing package: %s").printf (Utils.string_from_utf8 (event.str1));
                 break;
-            case Distinst.UpgradeTag.DPKG_ERR:
-                bar.text = _("dpkg-err: %s").printf (Utils.string_from_utf8 (event.message));
-                break;
-            case Distinst.UpgradeTag.UPGRADE_INFO:
-                bar.text = _("apt-info: %s").printf (Utils.string_from_utf8 (event.message));
-                break;
-            case Distinst.UpgradeTag.UPGRADE_ERR:
-                bar.text = _("apt-err: %s").printf (Utils.string_from_utf8 (event.message));
-                break;
-            case Distinst.UpgradeTag.PROGRESS:
+            case Distinst.UpgradeTag.PACKAGE_PROGRESS:
                 bar.fraction = (double) event.percent / 100;
                 break;
+            case Distinst.UpgradeTag.PACKAGE_SETTING_UP:
+                bar.text = _("Setting up package: %s").printf (Utils.string_from_utf8 (event.str1));
+                break;
+            case Distinst.UpgradeTag.PACKAGE_UNPACKING:
+                bar.text = _("Unpacking package %s (%s) over (%s)").printf (
+                    Utils.string_from_utf8 (event.str1),
+                    Utils.string_from_utf8 (event.str2),
+                    Utils.string_from_utf8 (event.str3)
+                );
+                break;
             case Distinst.UpgradeTag.RESUMING_UPGRADE:
-                bar.text = _("Recovered from upgrade failure: resuming upgrade attempt.");
+                desc_label.label = _("Resuming the system ugpgrade.");
                 break;
         }
+    }
+
+    private string from_message (uint8[] message) {
+        int line_index = message.length;
+        for (int index = 0; index < message.length; index++) {
+            if (message[index] == '\n') {
+                line_index = index;
+                break;
+            }
+        }
+
+        return Utils.string_from_utf8 (message[0:line_index]);
     }
 
     private bool attempt_repair () {

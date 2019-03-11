@@ -68,7 +68,7 @@ public class ErrorView : AbstractInstallerView {
         }
 
         Gtk.ScrolledWindow? terminal_output = null;
-        if (null != terminal_output) {
+        if (null != log) {
             var terminal_view = new Gtk.TextView ();
             terminal_view.buffer.text = log;
             terminal_view.bottom_margin = terminal_view.top_margin = terminal_view.left_margin = terminal_view.right_margin = 12;

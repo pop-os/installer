@@ -17,13 +17,16 @@ public class Installer.DecryptionView : AbstractInstallerView {
         desc_label.hexpand = true;
         desc_label.max_width_chars = 60;
         desc_label.wrap = true;
+        desc_label.get_style_context ().add_class ("h3");
 
         var pw_entry = new Gtk.Entry ();
         pw_entry.visibility = false;
+        pw_entry.grab_focus ();
 
         var pw_button = new Gtk.Button.with_label(_("Decrypt"));
         pw_button.sensitive = false;
 
+        pw_entry.activate.connect (() => pw_button.clicked ());
         pw_entry.changed.connect (() => {
             pw_button.sensitive = pw_entry.text_length != 0;
         });
@@ -35,7 +38,7 @@ public class Installer.DecryptionView : AbstractInstallerView {
         right_pane.valign = Gtk.Align.CENTER;
         right_pane.orientation = Gtk.Orientation.VERTICAL;
         right_pane.vexpand = true;
-        right_pane.row_spacing = 6;
+        right_pane.row_spacing = 24;
         right_pane.add (desc_label);
         right_pane.add (pw_entry);
 

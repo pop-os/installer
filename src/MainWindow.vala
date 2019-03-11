@@ -53,6 +53,8 @@ public class Installer.MainWindow : Gtk.Dialog {
     }
 
     construct {
+        LogHelper.get_default ();
+
         stack = new Gtk.Stack ();
         stack.transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT;
 
@@ -112,7 +114,7 @@ public class Installer.MainWindow : Gtk.Dialog {
         if (null == upgrade_view) {
             upgrade_view = new UpgradeView ();
             upgrade_view.on_success.connect (() => load_success_view (null, true));
-            upgrade_view.on_error.connect (() => load_error_view (null, true));
+            upgrade_view.on_error.connect (() => load_error_view (LogHelper.get_default ().buffer.text, true));
 
             stack.add (upgrade_view);
         }
