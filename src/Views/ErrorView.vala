@@ -17,11 +17,12 @@
  */
 
 public class ErrorView : AbstractInstallerView {
-    public string? log { get; construct; }
     public bool upgrade { get; construct; }
+    public uint64 minimum_disk_size { get; construct; }
+    public string log { get; construct; }
 
-    public ErrorView (string? log, bool upgrade) {
-        Object (log: log, upgrade: upgrade);
+    public ErrorView (string log, uint64 minimum_disk_size, bool upgrade) {
+        Object (log: log, minimum_disk_size: minimum_disk_size, upgrade: upgrade);
     }
 
     construct {
@@ -147,14 +148,17 @@ public class ErrorView : AbstractInstallerView {
             var install_button = new Gtk.Button.with_label (_("Try Installing Again"));
             install_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
             install_button.clicked.connect (() => {
+                // This object is moved during install, so this will restore the default settings.
+                var options = InstallOptions.get_default ();
+                options.set_minimum_size (minimum_disk_size);
+                options.get_options ();
+
                 ((Gtk.Stack) get_parent ()).visible_child = previous_view;
             });
 
             action_area.add (demo_button);
             action_area.add (install_button);
         }
-
-        action_area.add (restart_button);
 
         show_all ();
     }
