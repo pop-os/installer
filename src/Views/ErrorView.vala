@@ -21,6 +21,8 @@ public class ErrorView : AbstractInstallerView {
     public uint64 minimum_disk_size { get; construct; }
     public string log { get; construct; }
 
+    public signal void refresh_view ();
+
     public ErrorView (string log, uint64 minimum_disk_size, bool upgrade) {
         Object (log: log, minimum_disk_size: minimum_disk_size, upgrade: upgrade);
     }
@@ -91,7 +93,7 @@ public class ErrorView : AbstractInstallerView {
         label_area.column_homogeneous = true;
         label_area.halign = Gtk.Align.CENTER;
         label_area.valign = Gtk.Align.FILL;
-        label_area.attach (artwork,       0, 0, 1, 1);
+        label_area.attach (artwork,     0, 0, 1, 1);
         label_area.attach (title_label, 0, 1, 1, 1);
         label_area.attach (grid,        1, 0, 1, 2);
 
@@ -135,9 +137,7 @@ public class ErrorView : AbstractInstallerView {
 
             var refresh_os = new Gtk.Button.with_label (_("Refresh OS"));
             refresh_os.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
-            refresh_os.clicked.connect (() => {
-                ((Gtk.Stack) get_parent ()).visible_child = previous_view;
-            });
+            refresh_os.clicked.connect (() => refresh_view ());
 
             action_area.add (recovery_shell);
             action_area.add (refresh_os);

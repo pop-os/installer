@@ -373,6 +373,7 @@ public class Installer.MainWindow : Gtk.Dialog {
 
         error_view = new ErrorView (log, minimum_disk_size, upgrade);
         error_view.previous_view = try_install_view;
+        error_view.refresh_view.connect (load_refresh_view);
         stack.add (error_view);
         stack.visible_child = error_view;
     }
