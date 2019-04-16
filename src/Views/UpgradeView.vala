@@ -80,35 +80,36 @@ public class Installer.UpgradeView : AbstractInstallerView {
     }
 
     private void upgrade_callback (Distinst.UpgradeEvent event) {
+        string? desc = null;
+        string? bar_text = null;
+
         switch (event.tag) {
+            case Distinst.UpgradeTag.PACKAGE_PROGRESS:
+                Idle.add (() => {
+                    bar.fraction = (double) event.percent / 100;;
+                    return Source.REMOVE;
+                });
+                return;
             case Distinst.UpgradeTag.ATTEMPTING_REPAIR:
-                desc_label.label = _("An error occurred while upgrading the system. Attempting to repair the issue. Do not reboot the system, and keep it plugged in.");
-                bar.text = _("Attempting repair of upgrade");
+                desc = _("An error occurred while upgrading the system. Attempting to repair the issue. Do not reboot the system, and keep it plugged in.");
+                bar_text = _("Attempting repair of upgrade");
                 break;
             case Distinst.UpgradeTag.ATTEMPTING_UPGRADE:
-                desc_label.label = _("System is being upgraded. This process may take a while. Do not reboot the system, and keep it plugged in.");
-                bar.text = _("Attempting upgrade");
+                desc = _("System is being upgraded. This process may take a while. Do not reboot the system, and keep it plugged in.");
+                bar_text = _("Attempting upgrade");
                 break;
-            //  case Distinst.UpgradeTag.PACKAGE_PROCESSING:
-            //      bar.text = _("Processing package: %s").printf (Utils.string_from_utf8 (event.str1));
-            //      break;
-            case Distinst.UpgradeTag.PACKAGE_PROGRESS:
-                bar.fraction = (double) event.percent / 100;
-                break;
-            //  case Distinst.UpgradeTag.PACKAGE_SETTING_UP:
-            //      bar.text = _("Setting up package: %s").printf (Utils.string_from_utf8 (event.str1));
-            //      break;
-            //  case Distinst.UpgradeTag.PACKAGE_UNPACKING:
-            //      bar.text = _("Unpacking package %s (%s) over (%s)").printf (
-            //          Utils.string_from_utf8 (event.str1),
-            //          Utils.string_from_utf8 (event.str2),
-            //          Utils.string_from_utf8 (event.str3)
-            //      );
-            //      break;
             case Distinst.UpgradeTag.RESUMING_UPGRADE:
-                desc_label.label = _("Repairs were succssful. The upgrade process is now resuming.  Do not reboot the system, and keep it plugged in.");
-                bar.text = _("Resuming attempt to upgrade");
+                desc = _("Repairs were succssful. The upgrade process is now resuming.  Do not reboot the system, and keep it plugged in.");
+                bar_text = _("Resuming attempt to upgrade");
                 break;
+        }
+
+        if (desc != null) {
+            Idle.add (() => {
+                desc_label.label = desc;
+                bar.text = bar_text;
+                return Source.REMOVE;
+            });
         }
     }
 
