@@ -92,15 +92,15 @@ public class Installer.UpgradeView : AbstractInstallerView {
                 return;
             case Distinst.UpgradeTag.ATTEMPTING_REPAIR:
                 desc = _("An error occurred while upgrading the system. Attempting to repair the issue. Do not reboot the system, and keep it plugged in.");
-                bar_text = _("Attempting repair of upgrade");
+                bar_text = _("Problems found during upgrade -- repairing them");
                 break;
             case Distinst.UpgradeTag.ATTEMPTING_UPGRADE:
                 desc = _("System is being upgraded. This process may take a while. Do not reboot the system, and keep it plugged in.");
-                bar_text = _("Attempting upgrade");
+                bar_text = _("Upgrading installation to the new release");
                 break;
             case Distinst.UpgradeTag.RESUMING_UPGRADE:
                 desc = _("Repairs were succssful. The upgrade process is now resuming.  Do not reboot the system, and keep it plugged in.");
-                bar_text = _("Resuming attempt to upgrade");
+                bar_text = _("Resuming upgrade of installation to the new release");
                 break;
         }
 
