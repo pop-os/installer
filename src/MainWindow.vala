@@ -62,6 +62,8 @@ public class Installer.MainWindow : Gtk.Dialog {
         var options = InstallOptions.get_default ();
         var recovery_option = options.get_options ().get_recovery_option ();
         if (null != recovery_option && recovery_option.get_upgrade_mode ()) {
+            this.title = _("Upgrading to %s").printf (Utils.get_pretty_name ());
+
             var luks_uuid = recovery_option.get_luks_uuid ();
             var root_uuid = recovery_option.get_root_uuid ();
             unowned Distinst.Disks disks = options.borrow_disks ();
@@ -88,8 +90,6 @@ public class Installer.MainWindow : Gtk.Dialog {
 
                         // TODO: on error, display error message
                     }
-
-                    //
                 });
                 stack.add (decryption_view);
             } else {
