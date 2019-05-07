@@ -18,6 +18,8 @@
  * Authored by: Corentin Noël <corentin@elementary.io>
  */
 
+delegate void PostDecryptFn (Distinst.Disks disks);
+
 public class Installer.MainWindow : Gtk.Dialog {
     private Gtk.Stack stack;
 
@@ -63,38 +65,10 @@ public class Installer.MainWindow : Gtk.Dialog {
         var recovery_option = options.get_options ().get_recovery_option ();
         if (null != recovery_option && recovery_option.get_upgrade_mode ()) {
             this.title = _("Upgrading to %s").printf (Utils.get_pretty_name ());
-
-            var luks_uuid = recovery_option.get_luks_uuid ();
-            var root_uuid = recovery_option.get_root_uuid ();
-            unowned Distinst.Disks disks = options.borrow_disks ();
-
-            if (luks_uuid.length != 0 && (luks_uuid != root_uuid)) {
-                decryption_view = new DecryptionView ();
-                decryption_view.decrypt.connect ((passphrase) => {
-                    if (null != passphrase) {
-                        var uuid = Utils.string_from_utf8 (luks_uuid);
-                        unowned Distinst.Partition? partition = disks.get_partition_by_uuid (uuid);
-
-                        int result = disks.decrypt_partition (
-                            Utils.string_from_utf8 (partition.get_device_path ()),
-                            Distinst.LvmEncryption () {
-                                physical_volume = "cryptdata",
-                                password = passphrase
-                            }
-                        );
-
-                        if (result == 0) {
-                            load_upgrade_view (disks, recovery_option);
-                            return;
-                        }
-
-                        // TODO: on error, display error message
-                    }
-                });
-                stack.add (decryption_view);
-            } else {
-                load_upgrade_view (disks, recovery_option);
-            }
+            startup_decrypt (recovery_option, (disks) => load_upgrade_view (disks, recovery_option));
+        } else if (null != recovery_option && recovery_option.get_refresh_mode ()) {
+            this.title = _("Refresh OS");
+            startup_decrypt (recovery_option, (disks) => load_refresh_mode (recovery_option));
         } else {
             language_view = new LanguageView ();
             stack.add (language_view);
@@ -109,6 +83,50 @@ public class Installer.MainWindow : Gtk.Dialog {
 
         get_content_area ().add (stack);
         get_style_context ().add_class ("os-installer");
+    }
+
+    private void load_refresh_mode (Distinst.RecoveryOption recovery_option) {
+        var configuration = Configuration.get_default ();
+        configuration.cached_locale = Utils.string_from_utf8 (recovery_option.get_language ());
+        configuration.keyboard_layout = Utils.string_from_utf8 (recovery_option.get_kbd_layout ());
+        uint8[]? variant = recovery_option.get_kbd_variant ();
+        if (null != variant) {
+            configuration.keyboard_variant = Utils.string_from_utf8 (variant);
+        }
+
+        load_refresh_view ();
+    }
+
+    private void startup_decrypt (Distinst.RecoveryOption recovery_option, PostDecryptFn callback) {
+        var luks_uuid = recovery_option.get_luks_uuid ();
+        var root_uuid = recovery_option.get_root_uuid ();
+        unowned Distinst.Disks disks = InstallOptions.get_default ().borrow_disks ();
+
+        if (luks_uuid.length != 0 && (luks_uuid != root_uuid)) {
+            decryption_view = new DecryptionView ();
+            decryption_view.decrypt.connect ((passphrase) => {
+                if (null != passphrase) {
+                    var uuid = Utils.string_from_utf8 (luks_uuid);
+                    unowned Distinst.Partition? partition = disks.get_partition_by_uuid (uuid);
+
+                    int result = disks.decrypt_partition (
+                        Utils.string_from_utf8 (partition.get_device_path ()),
+                        Distinst.LvmEncryption () {
+                            physical_volume = "cryptdata",
+                            password = passphrase
+                        }
+                    );
+
+                    if (result == 0) {
+                        callback (disks);
+                        return;
+                    }
+                }
+            });
+            stack.add (decryption_view);
+        } else {
+            callback (disks);
+        }
     }
 
     private void load_upgrade_view (Distinst.Disks disks, Distinst.RecoveryOption option) {
