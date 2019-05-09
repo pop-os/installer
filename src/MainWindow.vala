@@ -18,7 +18,7 @@
  * Authored by: Corentin Noël <corentin@elementary.io>
  */
 
-delegate void PostDecryptFn (Distinst.Disks disks);
+delegate void PostDecryptFn ();
 
 public class Installer.MainWindow : Gtk.Dialog {
     private Gtk.Stack stack;
@@ -65,10 +65,10 @@ public class Installer.MainWindow : Gtk.Dialog {
         var recovery_option = options.get_options ().get_recovery_option ();
         if (null != recovery_option && recovery_option.get_upgrade_mode ()) {
             this.title = _("Upgrading to %s").printf (Utils.get_pretty_name ());
-            startup_decrypt (recovery_option, (disks) => load_upgrade_view (disks, recovery_option));
+            startup_decrypt (recovery_option, () => load_upgrade_view (recovery_option));
         } else if (null != recovery_option && recovery_option.get_refresh_mode ()) {
             this.title = _("Refresh OS");
-            startup_decrypt (recovery_option, (disks) => load_refresh_mode (recovery_option));
+            startup_decrypt (recovery_option, () => load_refresh_mode (recovery_option));
         } else {
             language_view = new LanguageView ();
             stack.add (language_view);
@@ -109,6 +109,11 @@ public class Installer.MainWindow : Gtk.Dialog {
                     var uuid = Utils.string_from_utf8 (luks_uuid);
                     unowned Distinst.Partition? partition = disks.get_partition_by_uuid (uuid);
 
+                    if (null == partition) {
+                        debug ("unable to find partition after decryption");
+                        return;
+                    }
+
                     int result = disks.decrypt_partition (
                         Utils.string_from_utf8 (partition.get_device_path ()),
                         Distinst.LvmEncryption () {
@@ -118,18 +123,20 @@ public class Installer.MainWindow : Gtk.Dialog {
                     );
 
                     if (result == 0) {
-                        callback (disks);
+                        callback ();
                         return;
                     }
                 }
             });
             stack.add (decryption_view);
         } else {
-            callback (disks);
+            callback ();
         }
     }
 
-    private void load_upgrade_view (Distinst.Disks disks, Distinst.RecoveryOption option) {
+    private void load_upgrade_view (Distinst.RecoveryOption option) {
+        debug ("loading upgrade view");
+
         if (null == upgrade_view) {
             upgrade_view = new UpgradeView ();
             upgrade_view.on_success.connect (() => load_success_view (null, true));
@@ -139,6 +146,7 @@ public class Installer.MainWindow : Gtk.Dialog {
         }
 
         stack.visible_child = upgrade_view;
+        unowned Distinst.Disks disks = InstallOptions.get_default ().borrow_disks ();
         upgrade_view.upgrade (disks, option);
     }
 
@@ -392,6 +400,12 @@ public class Installer.MainWindow : Gtk.Dialog {
         error_view = new ErrorView (log, minimum_disk_size, upgrade);
         error_view.previous_view = try_install_view;
         error_view.refresh_view.connect (load_refresh_view);
+        error_view.recovery_shell.connect (() => {
+            unowned Distinst.Disks disks = InstallOptions.get_default ().borrow_disks ();
+            stack.visible_child = upgrade_view;
+            upgrade_view.resume_upgrade (disks);
+        });
+
         stack.add (error_view);
         stack.visible_child = error_view;
     }

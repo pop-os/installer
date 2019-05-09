@@ -22,6 +22,7 @@ public class ErrorView : AbstractInstallerView {
     public string log { get; construct; }
 
     public signal void refresh_view ();
+    public signal void recovery_shell ();
 
     public ErrorView (string log, uint64 minimum_disk_size, bool upgrade) {
         Object (log: log, minimum_disk_size: minimum_disk_size, upgrade: upgrade);
@@ -46,7 +47,7 @@ public class ErrorView : AbstractInstallerView {
 
         var grid = new Gtk.Grid ();
         grid.row_spacing = 6;
-        grid.margin_left = 24;
+        grid.margin_start = 24;
         grid.valign = Gtk.Align.CENTER;
 
         var description_label = new_description_label (null);
@@ -125,21 +126,14 @@ public class ErrorView : AbstractInstallerView {
         restart_button.clicked.connect (Utils.restart);
 
         if (upgrade) {
-            var recovery_shell = new Gtk.Button.with_label (_("Try Recovery Shell"));
-            recovery_shell.clicked.connect (() => {
-                //  try {
-                //      var child = new GLib.Subprocess.newv ({"gnome-terminal"}, GLib.SubprocessFlags.NONE);
-                //      child.wait ();
-                //  } catch (GLib.Error error) {
-                //      critical ("could not execute gnome-terminal");
-                //  }
-            });
+            var recovery = new Gtk.Button.with_label (_("Try Recovery Shell"));
+            recovery.clicked.connect (() => recovery_shell ());
 
             var refresh_os = new Gtk.Button.with_label (_("Refresh OS"));
             refresh_os.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
             refresh_os.clicked.connect (() => refresh_view ());
 
-            action_area.add (recovery_shell);
+            action_area.add (recovery);
             action_area.add (refresh_os);
         } else {
             var demo_button = new Gtk.Button.with_label (_("Try Demo Mode"));

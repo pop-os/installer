@@ -5,18 +5,15 @@ public class Installer.UpgradeView : AbstractInstallerView {
     private Gtk.Label desc_label;
     private Gtk.ProgressBar bar;
 
+    public UpgradeView () {
+        Object (
+            artwork: "disks",
+            title: _("Upgrade OS")
+        );
+    }
+
     construct {
         stderr.printf ("constructing upgrade view\n");
-        var artwork = new Gtk.Grid ();
-        artwork.get_style_context ().add_class ("disks");
-        artwork.get_style_context ().add_class ("artwork");
-        artwork.vexpand = true;
-
-        var label = new Gtk.Label (_("Upgrade OS"));
-        label.max_width_chars = 60;
-        label.valign = Gtk.Align.START;
-        label.get_style_context ().add_class ("h2");
-
         desc_label = new Gtk.Label (_("Performing upgrade to the next release."));
         desc_label.hexpand = true;
         desc_label.max_width_chars = 60;
@@ -39,8 +36,6 @@ public class Installer.UpgradeView : AbstractInstallerView {
         progress.attach (desc_label, 0, 0, 1, 1);
         progress.attach (bar, 0, 1, 1, 1);
 
-        content_area.attach (artwork, 0, 0, 1, 1);
-        content_area.attach (label, 0, 1, 1, 1);
         content_area.attach (progress, 1, 0, 1, 2);
         show_all ();
     }
@@ -52,12 +47,31 @@ public class Installer.UpgradeView : AbstractInstallerView {
      **/
     public void upgrade (Distinst.Disks disks, Distinst.RecoveryOption recovery) {
         new Thread<void*> (null, () => {
-            int result = Distinst.upgrade (
-                disks,
-                recovery,
-                upgrade_callback,
-                attempt_repair
-            );
+            int result = Distinst.upgrade (disks, recovery, upgrade_callback);
+
+            // Ensure that a progress of 100 is always given at the end.
+            upgrade_callback (Distinst.UpgradeEvent () {
+                tag = Distinst.UpgradeTag.PACKAGE_PROGRESS,
+                percent = 100
+            });
+
+            Idle.add (() => {
+                if (0 == result) {
+                    on_success ();
+                } else {
+                    on_error ();
+                }
+
+                return Source.REMOVE;
+            });
+
+            return null;
+        });
+    }
+
+    public void resume_upgrade (Distinst.Disks disks) {
+        new Thread<void*> (null, () => {
+            int result = Distinst.resume_upgrade (disks, upgrade_callback, attempt_repair);
 
             // Ensure that a progress of 100 is always given at the end.
             upgrade_callback (Distinst.UpgradeEvent () {
@@ -113,20 +127,32 @@ public class Installer.UpgradeView : AbstractInstallerView {
         }
     }
 
-    private string from_message (uint8[] message) {
-        int line_index = message.length;
-        for (int index = 0; index < message.length; index++) {
-            if (message[index] == '\n') {
-                line_index = index;
-                break;
-            }
-        }
-
-        return Utils.string_from_utf8 (message[0:line_index]);
+    private void attempt_repair (uint8[] target_path) {
+        spawn_chrooted_terminal ("gnome-terminal", Utils.string_from_utf8 (target_path));
     }
 
-    private bool attempt_repair () {
-        return false;
+    private void spawn_chrooted_terminal (string term, string path) {
+        string command = """
+        systemd-spawn
+            --bind /dev
+            --bind /sys
+            --bind /proc
+            --bind /dev/mapper/control
+            --property="DeviceAllow=block-sd rw"
+            --property="DeviceAllow=block-devices-mapper rw"
+            %s bash
+        """.printf (path);
+
+        try {
+            var terminal = new GLib.Subprocess.newv (
+                {term, "-e", command},
+                GLib.SubprocessFlags.NONE
+            );
+
+            terminal.wait ();
+        } catch (GLib.Error error) {
+            critical (@"could not execute $term");
+        }
     }
 }
 
