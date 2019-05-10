@@ -2,8 +2,22 @@ public class Installer.UpgradeView : AbstractInstallerView {
     public signal void on_success ();
     public signal void on_error ();
 
-    private Gtk.Label desc_label;
-    private Gtk.ProgressBar bar;
+    private uint timeout_signal;
+
+    /// Holds UI events generated from a background thread.
+    private AsyncQueue<Object> queue = new AsyncQueue<Object> ();
+
+    private string[] DESCS = {
+        _("System is being upgraded. This process may take a while. Do not reboot the system, and keep it plugged in."),
+        _("An error occurred while upgrading the system. Attempting to repair the issue. Do not reboot the system, and keep it plugged in."),
+        _("Repairs were succssful. The upgrade process is now resuming.  Do not reboot the system, and keep it plugged in.")
+    };
+    
+    private string[] BARS = {
+        _("Upgrading installation to the new release"),
+        _("Problems found during upgrade -- repairing them"),
+        _("Resuming upgrade of installation to the new release")
+    };
 
     public UpgradeView () {
         Object (
@@ -12,15 +26,20 @@ public class Installer.UpgradeView : AbstractInstallerView {
         );
     }
 
+    ~UpgradeView () {
+        if (0 != timeout_signal) {
+            Source.remove (timeout_signal);
+        }
+    }
+
     construct {
-        stderr.printf ("constructing upgrade view\n");
-        desc_label = new Gtk.Label (_("Performing upgrade to the next release."));
+        var desc_label = new Gtk.Label (_("Performing upgrade to the next release."));
         desc_label.hexpand = true;
         desc_label.max_width_chars = 60;
         desc_label.wrap = true;
         desc_label.get_style_context ().add_class ("h3");
 
-        bar = new Gtk.ProgressBar ();
+        var bar = new Gtk.ProgressBar ();
         bar.text = _("Initializing upgrade process");
         bar.show_text = true;
         bar.pulse_step = 0.05;
@@ -38,13 +57,31 @@ public class Installer.UpgradeView : AbstractInstallerView {
 
         content_area.attach (progress, 1, 0, 1, 2);
         show_all ();
+
+        // Handle all signals from background threads as they are received.
+        timeout_signal = Timeout.add (16, () => {
+            Object? data = queue.try_pop ();
+            if (null != data) {
+                if (data is UpgradeViewLabelEvent) {
+                    UpgradeViewLabelEvent labels = (UpgradeViewLabelEvent) data;
+                    desc_label.label = DESCS[labels.index];
+                    bar.text = BARS[labels.index];
+                } else if (data is UpgradeViewProgressEvent) {
+                    bar.fraction = ((UpgradeViewProgressEvent) data).fraction;
+                } else if (data is UpgradeViewResult) {
+                    if (0 == ((UpgradeViewResult) data).result) {
+                        on_success ();
+                    } else {
+                        on_error ();
+                    }
+                }
+            }
+
+            return true;
+        });
     }
 
-    /**
-     * Attempts to chroot and upgrade an existing system in the recovery environment.
-     *
-     * This implementation spawns a background thread to perform the request.
-     **/
+    /// Attempts an upgrade of the installed system.
     public void upgrade (Distinst.Disks disks, Distinst.RecoveryOption recovery) {
         new Thread<void*> (null, () => {
             int result = Distinst.upgrade (disks, recovery, upgrade_callback);
@@ -55,20 +92,12 @@ public class Installer.UpgradeView : AbstractInstallerView {
                 percent = 100
             });
 
-            Idle.add (() => {
-                if (0 == result) {
-                    on_success ();
-                } else {
-                    on_error ();
-                }
-
-                return Source.REMOVE;
-            });
-
+            queue.push ((Object) new UpgradeViewResult (result));
             return null;
         });
     }
 
+    /// Re-attempts an upgrade after using the recovery shell.
     public void resume_upgrade (Distinst.Disks disks) {
         new Thread<void*> (null, () => {
             int result = Distinst.resume_upgrade (disks, upgrade_callback, attempt_repair);
@@ -79,81 +108,84 @@ public class Installer.UpgradeView : AbstractInstallerView {
                 percent = 100
             });
 
-            Idle.add (() => {
-                if (0 == result) {
-                    on_success ();
-                } else {
-                    on_error ();
-                }
-
-                return Source.REMOVE;
-            });
-
+            queue.push ((Object) new UpgradeViewResult (result));
             return null;
         });
     }
 
+    /// Provided as a callback to distinst to handle all upgrade events sent to the UI.
     private void upgrade_callback (Distinst.UpgradeEvent event) {
-        string? desc = null;
-        string? bar_text = null;
+        int label = -1;
 
         switch (event.tag) {
             case Distinst.UpgradeTag.PACKAGE_PROGRESS:
-                Idle.add (() => {
-                    bar.fraction = (double) event.percent / 100;;
-                    return Source.REMOVE;
-                });
+                queue.push ((Object) new UpgradeViewProgressEvent ((double) event.percent / 100));
                 return;
-            case Distinst.UpgradeTag.ATTEMPTING_REPAIR:
-                desc = _("An error occurred while upgrading the system. Attempting to repair the issue. Do not reboot the system, and keep it plugged in.");
-                bar_text = _("Problems found during upgrade -- repairing them");
-                break;
             case Distinst.UpgradeTag.ATTEMPTING_UPGRADE:
-                desc = _("System is being upgraded. This process may take a while. Do not reboot the system, and keep it plugged in.");
-                bar_text = _("Upgrading installation to the new release");
+                label = 0;
+                break;
+            case Distinst.UpgradeTag.ATTEMPTING_REPAIR:
+                label = 1;
                 break;
             case Distinst.UpgradeTag.RESUMING_UPGRADE:
-                desc = _("Repairs were succssful. The upgrade process is now resuming.  Do not reboot the system, and keep it plugged in.");
-                bar_text = _("Resuming upgrade of installation to the new release");
+                label = 2;
                 break;
         }
 
-        if (desc != null) {
-            Idle.add (() => {
-                desc_label.label = desc;
-                bar.text = bar_text;
-                return Source.REMOVE;
-            });
-        }
-    }
-
-    private void attempt_repair (uint8[] target_path) {
-        spawn_chrooted_terminal ("gnome-terminal", Utils.string_from_utf8 (target_path));
-    }
-
-    private void spawn_chrooted_terminal (string term, string path) {
-        string command = """
-        systemd-spawn
-            --bind /dev
-            --bind /sys
-            --bind /proc
-            --bind /dev/mapper/control
-            --property="DeviceAllow=block-sd rw"
-            --property="DeviceAllow=block-devices-mapper rw"
-            %s bash
-        """.printf (path);
-
-        try {
-            var terminal = new GLib.Subprocess.newv (
-                {term, "-e", command},
-                GLib.SubprocessFlags.NONE
-            );
-
-            terminal.wait ();
-        } catch (GLib.Error error) {
-            critical (@"could not execute $term");
+        if (-1 != label) {
+            queue.push ((Object) new UpgradeViewLabelEvent (label));
         }
     }
 }
 
+/// Provided as a callback to distinst to open GNOME Terminal chroot'd to the upgrade target.
+void attempt_repair (uint8[] target_path) {
+    spawn_chrooted_terminal ("gnome-terminal", Utils.string_from_utf8 (target_path));
+}
 
+/// Spawns a terminal with a chroot'd session to the upgrade target.
+void spawn_chrooted_terminal (string term, string target) {
+    try {
+        string args[] = {
+            term, "--wait",
+            "--",
+            "systemd-nspawn",
+            "--bind", "/dev",
+            "--bind", "/sys",
+            "--bind", "/proc",
+            "--bind", "/dev/mapper/control",
+            "--property=DeviceAllow=block-sd rw",
+            "--property=DeviceAllow=block-devices-mapper rw",
+            "-D", target, "bash", null
+        };
+
+        var child = new GLib.Subprocess.newv (args, GLib.SubprocessFlags.NONE);
+        child.wait ();
+    } catch (GLib.Error error) {
+        critical (@"could not execute $term");
+    }
+}
+
+class UpgradeViewLabelEvent: Object {
+    public int index { get; set; }
+
+    public UpgradeViewLabelEvent (int index) {
+        Object (index: index);
+    }
+}
+
+class UpgradeViewProgressEvent: Object {
+    public double fraction { get; set; }
+
+    public UpgradeViewProgressEvent (double fraction) {
+        Object (fraction: fraction);
+    }
+}
+
+class UpgradeViewResult: Object {
+    public int result { get; set; }
+
+    public UpgradeViewResult (int result) {
+        Object (result: result);
+    }
+}

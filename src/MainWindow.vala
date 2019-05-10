@@ -18,30 +18,34 @@
  * Authored by: Corentin Noël <corentin@elementary.io>
  */
 
-delegate void PostDecryptFn ();
-
 public class Installer.MainWindow : Gtk.Dialog {
     private Gtk.Stack stack;
 
-    private DecryptionView decryption_view;
-    private DiskView disk_view;
-    private EncryptView encrypt_view;
-    private ErrorView error_view;
-    private Installer.CheckView check_view;
-    private KeyboardLayoutView keyboard_layout_view;
-    private LanguageView language_view;
-    private PartitioningView partitioning_view;
-    private ProgressView progress_view;
-    private RefreshView refresh_view;
-    private SuccessView success_view;
-    private TryInstallView try_install_view;
-    private UpgradeView upgrade_view;
+    private DecryptionView decryption_view = null;
+    private DiskView disk_view = null;
+    private EncryptView encrypt_view = null;
+    private ErrorView error_view = null;
+    private Installer.CheckView check_view = null;
+    private KeyboardLayoutView keyboard_layout_view = null;
+    private LanguageView language_view = null;
+    private PartitioningView partitioning_view = null;
+    private ProgressView progress_view = null;
+    private RefreshView refresh_view = null;
+    private SuccessView success_view = null;
+    private TryInstallView try_install_view = null;
+    private UpgradeView upgrade_view = null;
+
     private bool check_ignored = false;
 
     private uint64 minimum_disk_size;
 
     private DateTime? start_date = null;
     private DateTime? end_date = null;
+
+    enum PostDecryptOperation {
+        RECOVERY,
+        UPGRADE
+    }
 
     public MainWindow () {
         Object (
@@ -61,14 +65,17 @@ public class Installer.MainWindow : Gtk.Dialog {
         stack = new Gtk.Stack ();
         stack.transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT;
 
-        var options = InstallOptions.get_default ();
-        var recovery_option = options.get_options ().get_recovery_option ();
+        get_content_area ().add (stack);
+        get_style_context ().add_class ("os-installer");
+
+        unowned InstallOptions options = InstallOptions.get_default ();
+        unowned Distinst.RecoveryOption? recovery_option = options.get_options ().get_recovery_option ();
         if (null != recovery_option && recovery_option.get_upgrade_mode ()) {
             this.title = _("Upgrading to %s").printf (Utils.get_pretty_name ());
-            startup_decrypt (recovery_option, () => load_upgrade_view (recovery_option));
+            startup_decrypt (recovery_option, PostDecryptOperation.UPGRADE);
         } else if (null != recovery_option && recovery_option.get_refresh_mode ()) {
             this.title = _("Refresh OS");
-            startup_decrypt (recovery_option, () => load_refresh_mode (recovery_option));
+            startup_decrypt (recovery_option, PostDecryptOperation.RECOVERY);
         } else {
             language_view = new LanguageView ();
             stack.add (language_view);
@@ -80,16 +87,21 @@ public class Installer.MainWindow : Gtk.Dialog {
 
             language_view.next_step.connect (() => load_keyboard_view ());
         }
+    }
 
-        get_content_area ().add (stack);
-        get_style_context ().add_class ("os-installer");
+    private void exec_post_decrypt_operation (PostDecryptOperation operation, Distinst.RecoveryOption recovery_option) {
+        if (operation == PostDecryptOperation.UPGRADE) {
+            load_upgrade_view (recovery_option);
+        } else {
+            load_refresh_view ();
+        }
     }
 
     private void load_refresh_mode (Distinst.RecoveryOption recovery_option) {
-        var configuration = Configuration.get_default ();
+        unowned Configuration configuration = Configuration.get_default ();
         configuration.cached_locale = Utils.string_from_utf8 (recovery_option.get_language ());
         configuration.keyboard_layout = Utils.string_from_utf8 (recovery_option.get_kbd_layout ());
-        uint8[]? variant = recovery_option.get_kbd_variant ();
+        unowned uint8[]? variant = recovery_option.get_kbd_variant ();
         if (null != variant) {
             configuration.keyboard_variant = Utils.string_from_utf8 (variant);
         }
@@ -97,16 +109,17 @@ public class Installer.MainWindow : Gtk.Dialog {
         load_refresh_view ();
     }
 
-    private void startup_decrypt (Distinst.RecoveryOption recovery_option, PostDecryptFn callback) {
-        var luks_uuid = recovery_option.get_luks_uuid ();
-        var root_uuid = recovery_option.get_root_uuid ();
+    private void startup_decrypt (Distinst.RecoveryOption recovery_option, PostDecryptOperation operation) {
+        unowned uint8[] luks_uuid = recovery_option.get_luks_uuid ();
+        unowned uint8[] root_uuid = recovery_option.get_root_uuid ();
         unowned Distinst.Disks disks = InstallOptions.get_default ().borrow_disks ();
 
         if (luks_uuid.length != 0 && (luks_uuid != root_uuid)) {
             decryption_view = new DecryptionView ();
+            stack.add (decryption_view);
             decryption_view.decrypt.connect ((passphrase) => {
                 if (null != passphrase) {
-                    var uuid = Utils.string_from_utf8 (luks_uuid);
+                    string uuid = Utils.string_from_utf8 (luks_uuid);
                     unowned Distinst.Partition? partition = disks.get_partition_by_uuid (uuid);
 
                     if (null == partition) {
@@ -114,8 +127,10 @@ public class Installer.MainWindow : Gtk.Dialog {
                         return;
                     }
 
+                    unowned uint8[] device_path = partition.get_device_path ();
+
                     int result = disks.decrypt_partition (
-                        Utils.string_from_utf8 (partition.get_device_path ()),
+                        Utils.string_from_utf8 (device_path),
                         Distinst.LvmEncryption () {
                             physical_volume = "cryptdata",
                             password = passphrase
@@ -123,20 +138,16 @@ public class Installer.MainWindow : Gtk.Dialog {
                     );
 
                     if (result == 0) {
-                        callback ();
-                        return;
+                        exec_post_decrypt_operation (operation, recovery_option);
                     }
                 }
             });
-            stack.add (decryption_view);
         } else {
-            callback ();
+            exec_post_decrypt_operation (operation, recovery_option);
         }
     }
 
     private void load_upgrade_view (Distinst.RecoveryOption option) {
-        debug ("loading upgrade view");
-
         if (null == upgrade_view) {
             upgrade_view = new UpgradeView ();
             upgrade_view.on_success.connect (() => load_success_view (null, true));
@@ -154,7 +165,6 @@ public class Installer.MainWindow : Gtk.Dialog {
      * We need to load all the view after the language has being chosen and set.
      * We need to rebuild the view everytime the next button is clicked to reflect language changes.
      */
-
 
     private void load_keyboard_view () {
         if (keyboard_layout_view != null) {
