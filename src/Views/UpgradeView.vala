@@ -10,7 +10,7 @@ public class Installer.UpgradeView : AbstractInstallerView {
     private string[] DESCS = {
         _("System is being upgraded. This process may take a while. Do not reboot the system, and keep it plugged in."),
         _("An error occurred while upgrading the system. Attempting to repair the issue. Do not reboot the system, and keep it plugged in."),
-        _("Repairs were succssful. The upgrade process is now resuming.  Do not reboot the system, and keep it plugged in.")
+        _("Repairs were successful. The upgrade process is now resuming.  Do not reboot the system, and keep it plugged in.")
     };
     
     private string[] BARS = {
