@@ -21,6 +21,7 @@ public class RefreshView: OptionsView {
         var install_options = InstallOptions.get_default ();
         unowned Distinst.Disks disks = install_options.borrow_disks ();
         foreach (var option in install_options.get_options ().get_refresh_options ()) {
+            stderr.printf ("found refresh option\n");
             var os = Utils.string_from_utf8 (option.get_os_name ());
             var version = Utils.string_from_utf8 (option.get_os_version ());
             var uuid = Utils.string_from_utf8 (option.get_root_part ());

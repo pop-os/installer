@@ -42,8 +42,8 @@ public class Installer.MainWindow : Gtk.Dialog {
     private DateTime? start_date = null;
     private DateTime? end_date = null;
 
-    enum PostDecryptOperation {
-        RECOVERY,
+    enum StartupOperation {
+        REFRESH,
         UPGRADE
     }
 
@@ -53,7 +53,6 @@ public class Installer.MainWindow : Gtk.Dialog {
             height_request: 700,
             icon_name: "system-os-installer",
             resizable: true,
-            title: _("Install %s").printf (Utils.get_pretty_name ()),
             width_request: 950,
             use_header_bar: 1
         );
@@ -70,30 +69,43 @@ public class Installer.MainWindow : Gtk.Dialog {
 
         unowned InstallOptions options = InstallOptions.get_default ();
         unowned Distinst.RecoveryOption? recovery_option = options.get_options ().get_recovery_option ();
-        if (null != recovery_option && recovery_option.get_upgrade_mode ()) {
-            this.title = _("Upgrading to %s").printf (Utils.get_pretty_name ());
-            startup_decrypt (recovery_option, PostDecryptOperation.UPGRADE);
-        } else if (null != recovery_option && recovery_option.get_refresh_mode ()) {
-            this.title = _("Refresh OS");
-            startup_decrypt (recovery_option, PostDecryptOperation.RECOVERY);
+        StartupOperation operation;
+        string? new_title = null;
+
+        const uint64 DEFAULT_MINIMUM_SIZE = 5000000000;
+        minimum_disk_size = Distinst.minimum_disk_size (DEFAULT_MINIMUM_SIZE / 512);
+
+        options.set_minimum_size (minimum_disk_size);
+
+        if (null != recovery_option) {
+            if (recovery_option.get_upgrade_mode ()) {
+                operation = StartupOperation.UPGRADE;
+                new_title = _("Upgrading to %s").printf (Utils.get_pretty_name ());
+            } else if (recovery_option.get_refresh_mode ()) {
+                operation = StartupOperation.REFRESH;
+                new_title = _("Refresh OS");
+            }
+        }
+
+        weak Gtk.HeaderBar? headerbar = (Gtk.HeaderBar) get_header_bar ();
+        if (new_title != null) {
+            info ("%s", new_title);
+            headerbar.title = new_title;
+            startup_decrypt (recovery_option, operation);
         } else {
+            headerbar.title = _("Install %s").printf (Utils.get_pretty_name ());
             language_view = new LanguageView ();
             stack.add (language_view);
-
-            const uint64 DEFAULT_MINIMUM_SIZE = 5000000000;
-            minimum_disk_size = Distinst.minimum_disk_size (DEFAULT_MINIMUM_SIZE / 512);
-
-            options.set_minimum_size (minimum_disk_size);
 
             language_view.next_step.connect (() => load_keyboard_view ());
         }
     }
 
-    private void exec_post_decrypt_operation (PostDecryptOperation operation, Distinst.RecoveryOption recovery_option) {
-        if (operation == PostDecryptOperation.UPGRADE) {
+    private void exec_post_decrypt_operation (StartupOperation operation, Distinst.RecoveryOption recovery_option) {
+        if (operation == StartupOperation.UPGRADE) {
             load_upgrade_view (recovery_option);
         } else {
-            load_refresh_view ();
+            load_refresh_mode (recovery_option);
         }
     }
 
@@ -109,7 +121,7 @@ public class Installer.MainWindow : Gtk.Dialog {
         load_refresh_view ();
     }
 
-    private void startup_decrypt (Distinst.RecoveryOption recovery_option, PostDecryptOperation operation) {
+    private void startup_decrypt (Distinst.RecoveryOption recovery_option, StartupOperation operation) {
         unowned uint8[] luks_uuid = recovery_option.get_luks_uuid ();
         unowned uint8[] root_uuid = recovery_option.get_root_uuid ();
         unowned Distinst.Disks disks = InstallOptions.get_default ().borrow_disks ();
@@ -138,6 +150,8 @@ public class Installer.MainWindow : Gtk.Dialog {
                     );
 
                     if (result == 0) {
+                        stderr.printf ("rescanning\n");
+                        InstallOptions.get_default ().rescan ();
                         exec_post_decrypt_operation (operation, recovery_option);
                     }
                 }
@@ -201,7 +215,7 @@ public class Installer.MainWindow : Gtk.Dialog {
                 }
 
                 InstallOptions.get_default ().selected_option = new Distinst.InstallOption () {
-                    tag = Distinst.InstallOptionVariant.RECOVERY,
+                    tag = Distinst.InstallOptionVariant.REFRESH,
                     option = (void*) recovery,
                     encrypt_pass = null
                 };
