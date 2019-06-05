@@ -118,6 +118,7 @@ public class Installer.MainWindow : Gtk.Dialog {
             configuration.keyboard_variant = Utils.string_from_utf8 (variant);
         }
 
+        InstallOptions.get_default ().rescan ();
         load_refresh_view ();
     }
 
@@ -150,8 +151,6 @@ public class Installer.MainWindow : Gtk.Dialog {
                     );
 
                     if (result == 0) {
-                        stderr.printf ("rescanning\n");
-                        InstallOptions.get_default ().rescan ();
                         exec_post_decrypt_operation (operation, recovery_option);
                     }
                 }
