@@ -9,7 +9,7 @@ public class Installer.UpgradeView : AbstractInstallerView {
 
     private string[] DESCS = {
         _("System is being upgraded. This process may take a while. Do not reboot the system, and keep it plugged in."),
-        _("An error occurred while upgrading the system. Attempting to repair the issue. Do not reboot the system, and keep it plugged in."),
+        _("An error occurred while upgrading the system. Repairing the issue. Do not reboot the system, and keep it plugged in."),
         _("Repairs were successful. The upgrade process is now resuming.  Do not reboot the system, and keep it plugged in.")
     };
     
@@ -38,10 +38,11 @@ public class Installer.UpgradeView : AbstractInstallerView {
         desc_label.max_width_chars = 60;
         desc_label.wrap = true;
         desc_label.get_style_context ().add_class ("h3");
+        desc_label.margin_bottom = 12;
+
+        var progress_label = new Gtk.Label (_("Initializing upgrade process"));
 
         var bar = new Gtk.ProgressBar ();
-        bar.text = _("Initializing upgrade process");
-        bar.show_text = true;
         bar.pulse_step = 0.05;
         bar.ellipsize = Pango.EllipsizeMode.END;
         bar.hexpand = true;
@@ -51,9 +52,10 @@ public class Installer.UpgradeView : AbstractInstallerView {
         progress.orientation = Gtk.Orientation.VERTICAL;
         progress.vexpand = true;
         progress.hexpand = true;
-        progress.row_spacing = 24;
-        progress.attach (desc_label, 0, 0, 1, 1);
-        progress.attach (bar, 0, 1, 1, 1);
+        progress.row_spacing = 12;
+        progress.attach (desc_label,     0, 0, 1, 1);
+        progress.attach (progress_label, 0, 1, 1, 1);
+        progress.attach (bar,            0, 2, 1, 1);
 
         content_area.attach (progress, 1, 0, 1, 2);
         show_all ();
@@ -65,7 +67,7 @@ public class Installer.UpgradeView : AbstractInstallerView {
                 if (data is UpgradeViewLabelEvent) {
                     UpgradeViewLabelEvent labels = (UpgradeViewLabelEvent) data;
                     desc_label.label = DESCS[labels.index];
-                    bar.text = BARS[labels.index];
+                    progress_label.label = BARS[labels.index];
                 } else if (data is UpgradeViewProgressEvent) {
                     bar.fraction = ((UpgradeViewProgressEvent) data).fraction;
                 } else if (data is UpgradeViewResult) {
