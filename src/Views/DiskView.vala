@@ -44,8 +44,15 @@ public class Installer.DiskView : OptionsView {
 
         var install_options = InstallOptions.get_default ();
         unowned Distinst.InstallOptions options = install_options.get_updated_options ();
+        unowned string? install_device = install_options.get_install_device_path ();
 
         foreach (unowned Distinst.EraseOption disk in options.get_erase_options ()) {
+            string device_path = Utils.string_from_utf8 (disk.get_device_path ());
+
+            if (install_device != null && install_device == device_path && !install_options.has_recovery ()) {
+                continue;
+            }
+
             string logo = Utils.string_from_utf8 (disk.get_linux_icon ());
             string label = Utils.string_from_utf8 (disk.get_model ());
             string details = "%s %.1f GiB".printf (

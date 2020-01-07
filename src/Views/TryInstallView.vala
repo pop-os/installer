@@ -129,13 +129,6 @@ public class Installer.TryInstallView : AbstractInstallerView {
             () => refresh_step ()
         );
 
-        //  var alongside_button = button_creator.new_button (
-        //      _("Install Alongside OS"),
-        //      "drive-multidisk",
-        //      _("Install %s next to one or more existing OS installations").printf (pretty_name),
-        //      () => alongside_step ()
-        //  );
-
         var custom_button = button_creator.new_button (
             _("Custom (Advanced)"),
             "disk-utility",
@@ -153,22 +146,34 @@ public class Installer.TryInstallView : AbstractInstallerView {
         var sizegroup = new Gtk.SizeGroup (Gtk.SizeGroupMode.BOTH);
         sizegroup.add_widget (clean_install_button.type_image);
         sizegroup.add_widget (refresh_install_button.type_image);
-        //  sizegroup.add_widget (alongside_button.type_image);
         sizegroup.add_widget (custom_button.type_image);
 
         type_grid.add (clean_install_button);
         type_grid.add (refresh_install_button);
-        //  type_grid.add (alongside_button);
-        type_grid.add (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
-        type_grid.add (custom_button);
 
         demo_button.key_press_event.connect ((event) => handle_key_press (demo_button, event));
         clean_install_button.key_press_event.connect ((event) => handle_key_press (clean_install_button, event));
         refresh_install_button.key_press_event.connect ((event) => handle_key_press (refresh_install_button, event));
-        //  alongside_button.key_press_event.connect ((event) => handle_key_press (alongside_button, event));
         custom_button.key_press_event.connect ((event) => handle_key_press (custom_button, event));
 
         var options = InstallOptions.get_default ();
+
+        InstallTypeButton alongside_button = null;
+
+        // Disallow the alongside OS option if the live media is the recovery partition.
+        if (!options.has_recovery ()) {
+            alongside_button = button_creator.new_button (
+                _("Install Alongside OS"),
+                "drive-multidisk",
+                _("Install %s next to one or more existing OS installations").printf (pretty_name),
+                () => alongside_step ()
+            );
+
+            sizegroup.add_widget (alongside_button.type_image);
+            type_grid.add (alongside_button);
+            alongside_button.key_press_event.connect ((event) => handle_key_press (alongside_button, event));
+            alongside_button.visible = options.get_options ().has_alongside_options ();
+        }
 
         decrypt_button.clicked.connect (() => {
             var decrypt_dialog = new DecryptDialog ();
@@ -180,7 +185,10 @@ public class Installer.TryInstallView : AbstractInstallerView {
             decrypt_dialog.response.connect ((resp) => {
                 if (resp == Gtk.ResponseType.DELETE_EVENT) {
                     refresh_install_button.visible = options.get_options ().has_refresh_options ();
-                    //  alongside_button.visible = options.get_options ().has_alongside_options ();
+
+                    if (alongside_button != null) {
+                        alongside_button.visible = options.get_options ().has_alongside_options ();
+                    }
 
                     var nlocked = partitions_locked ();
                     decrypt_infobar.visible = nlocked != 0;
@@ -188,15 +196,16 @@ public class Installer.TryInstallView : AbstractInstallerView {
             });
         });
 
+        type_grid.add (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
+        type_grid.add (custom_button);
+
         show_all ();
 
         clean_install_button.grab_focus ();
 
-        // Hide the info bar if no encrypted partitions are found.
         decrypt_infobar.visible = partitions_locked () != 0;
 
         refresh_install_button.visible = options.get_options ().has_refresh_options ();
-        //  alongside_button.visible = options.get_options ().has_alongside_options ();
     }
 
     private bool handle_key_press (Gtk.Button button, Gdk.EventKey event) {

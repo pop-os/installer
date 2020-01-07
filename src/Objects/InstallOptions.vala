@@ -29,6 +29,9 @@ public class InstallOptions : GLib.Object {
 
     private Gee.ArrayList<string> unlocked_devices { get; set; default = new Gee.ArrayList<string> (); }
 
+    private unowned Distinst.Disk? install_device;
+    private string? install_device_path;
+
     // The amount of free space that should be retained when shrinking (20 GiB).
     public const uint64 SHRINK_OVERHEAD = 20 * 2 * 1024 * 1024;
 
@@ -38,6 +41,25 @@ public class InstallOptions : GLib.Object {
         }
 
         return _options_object;
+    }
+
+    public unowned Distinst.Disk? get_install_device () {
+        if (install_device == null) {
+            install_device = disks.get_disk_with_mount ("/cdrom");
+        }
+
+        return install_device;
+    }
+
+    public unowned string? get_install_device_path () {
+        if (install_device_path == null) {
+            unowned Distinst.Disk? install_device = get_install_device ();
+            if (install_device != null) {
+                install_device_path = Utils.string_from_utf8 (install_device.get_device_path ());
+            }
+        }
+
+        return install_device_path;
     }
 
     public void set_minimum_size (uint64 size) {
@@ -118,6 +140,8 @@ public class InstallOptions : GLib.Object {
     // Transder ownership of the disks to the caller.
     public Distinst.Disks take_disks () {
         disks_moved = true;
+        install_device = null;
+        install_device_path = null;
         return (owned) disks;
     }
 

@@ -21,6 +21,7 @@
 public class Installer.MainWindow : Gtk.Dialog {
     private Gtk.Stack stack;
 
+    private AlongsideView alongside_view;
     private DiskView disk_view;
     private EncryptView encrypt_view;
     private ErrorView error_view;
@@ -30,6 +31,7 @@ public class Installer.MainWindow : Gtk.Dialog {
     private PartitioningView partitioning_view;
     private ProgressView progress_view;
     private RefreshView refresh_view;
+    private ResizeView resize_view;
     private SuccessView success_view;
     private TryInstallView try_install_view;
     private bool check_ignored = false;
@@ -132,6 +134,45 @@ public class Installer.MainWindow : Gtk.Dialog {
         try_install_view.custom_step.connect (load_partitioning_view);
         try_install_view.next_step.connect (load_disk_view);
         try_install_view.refresh_step.connect (load_refresh_view);
+        try_install_view.alongside_step.connect (load_alongside_view);
+    }
+
+    private void load_alongside_view () {
+        if (alongside_view == null) {
+            alongside_view = new AlongsideView ();
+            alongside_view.previous_view = try_install_view;
+            alongside_view.next_step.connect ((set_scale, os, free, total) => {
+                if (set_scale) {
+                    load_resize_view (os, free, total);
+                } else {
+                    load_encrypt_view ();
+                }
+            });
+
+            alongside_view.cancel.connect (() => {
+                stack.visible_child = try_install_view;
+            });
+            stack.add (alongside_view);
+        }
+
+        stack.visible_child = alongside_view;
+        alongside_view.update_options ();
+    }
+
+    private void load_resize_view (string? os, uint64 free, uint64 total) {
+        if (resize_view == null) {
+            resize_view = new ResizeView (minimum_disk_size);
+            resize_view.previous_view = alongside_view;
+            resize_view.next_step.connect (load_encrypt_view);
+            resize_view.cancel.connect (() => {
+                stack.visible_child = alongside_view;
+            });
+
+            stack.add (resize_view);
+        }
+
+        stack.visible_child = resize_view;
+        resize_view.update_options (os, free, total);
     }
 
     private void load_refresh_view () {
