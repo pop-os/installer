@@ -21,8 +21,11 @@ public class SuccessView : AbstractInstallerView {
 
     public string log { get; construct; }
 
-    public SuccessView (string log) {
+    private Modes.Mode mode;
+
+    public SuccessView (Modes.Mode mode, string log) {
         Object (log: log);
+        this.mode = mode;
     }
 
     construct {
@@ -42,9 +45,11 @@ public class SuccessView : AbstractInstallerView {
         bool requires_workaround = requires_workaround ();
 
         var description_label = new Gtk.Label (
-            requires_workaround
-                ? _("Shut down now and create a user account on the next start.")
-                : _("After restarting you can set up a new user, or you can shut down now and set up a new user later.")   
+            (this.mode == Modes.Mode.REFRESH)
+                ? _("System install has been refreshed. Restart now.")
+                : requires_workaround
+                    ? _("Shut down now and create a user account on the next start.")
+                    : _("After restarting you can set up a new user, or you can shut down now and set up a new user later.")
         );
 
         description_label.max_width_chars = 52;
@@ -96,7 +101,7 @@ public class SuccessView : AbstractInstallerView {
         }
 
         action_area.add (shutdown_button);
-        
+
 
         show_all ();
     }
@@ -106,7 +111,7 @@ public class SuccessView : AbstractInstallerView {
             string product_model = product_model ();
             return product_model == "darp6" || product_model == "galp4" || product_model == "lemp9";
         }
-        
+
         return false;
     }
 

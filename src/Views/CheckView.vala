@@ -147,12 +147,20 @@ public class Installer.CheckView : AbstractInstallerView {
             try {
                 upower = Bus.get_proxy_sync (BusType.SYSTEM, "org.freedesktop.UPower", "/org/freedesktop/UPower", GLib.DBusProxyFlags.GET_INVALIDATED_PROPERTIES);
 
-                (upower as DBusProxy).g_properties_changed.connect ((changed, invalid) => {
-                    var _on_battery = changed.lookup_value ("OnBattery", GLib.VariantType.BOOLEAN);
-                    if (_on_battery != null) {
-                        status_changed (check_requirements ());
-                    }
-                });
+                if (upower != null) {
+                    (upower as DBusProxy)
+                        .g_properties_changed
+                        .connect ((changed, invalid) => {
+                            var _on_battery = changed.lookup_value ("OnBattery", GLib.VariantType.BOOLEAN);
+                            if (_on_battery != null) {
+                                status_changed (check_requirements ());
+                            }
+                        });
+                } else {
+                    warning (_("upower dbus was null"));
+                    return false;
+                }
+
             } catch (Error e) {
                 warning (e.message);
                 return false;
