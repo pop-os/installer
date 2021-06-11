@@ -19,6 +19,8 @@
 public class EncryptView : AbstractInstallerView {
     public signal void next_step ();
 
+    public Gtk.CheckButton reuse_password;
+
     private ErrorRevealer confirm_entry_revealer;
     private ErrorRevealer pw_error_revealer;
     private Gtk.Button next_button;
@@ -69,6 +71,17 @@ public class EncryptView : AbstractInstallerView {
         restart_label.wrap = true;
         restart_label.xalign = 0;
 
+        var reuse_password = new Gtk.CheckButton.with_label("Encryption password is the same as user account password.");
+        reuse_password.margin_top = 36;
+        reuse_password.toggled.connect(() => {
+            bool state = reuse_password.active;
+            pw_entry.sensitive = !state;
+            confirm_entry.sensitive = !state;
+
+            confirm_entry.is_valid = confirm_password ();
+            update_next_button ();
+        });
+
         var choice_grid = new Gtk.Grid ();
         choice_grid.orientation = Gtk.Orientation.VERTICAL;
         choice_grid.column_spacing = 12;
@@ -79,6 +92,7 @@ public class EncryptView : AbstractInstallerView {
         choice_grid.attach (performance_label, 1, 1, 1, 1);
         choice_grid.attach (restart_image, 0, 2, 1, 1);
         choice_grid.attach (restart_label, 1, 2, 1, 1);
+        choice_grid.attach (reuse_password, 0, 3, 2, 1);
 
         var description = new Gtk.Label (_("If you forget the encryption password, <b>you will not be able to recover data.</b> This is a unique password for this device, not the password for your user account."));
         description.margin_bottom = 12;
@@ -147,7 +161,7 @@ public class EncryptView : AbstractInstallerView {
         next_button.grab_focus ();
 
         no_encrypt_button.clicked.connect (() => {
-                next_step ();
+            next_step ();
         });
 
         back_button.clicked.connect (() => {
@@ -158,13 +172,14 @@ public class EncryptView : AbstractInstallerView {
         });
 
         next_button.clicked.connect (() => {
-            if (stack.visible_child == choice_grid) {
+            bool reuse = reuse_password.active;
+            if (!reuse && stack.visible_child == choice_grid) {
                 stack.visible_child = password_grid;
                 pw_entry.grab_focus ();
                 next_button.label = _("Set Password");
                 back_button.show ();
                 update_next_button ();
-            } else if (stack.visible_child == password_grid) {
+            } else if (reuse || stack.visible_child == password_grid) {
                 Configuration.get_default ().encryption_password = pw_entry.text;
                 next_step ();
             }
@@ -240,42 +255,11 @@ public class EncryptView : AbstractInstallerView {
     }
 
     private void update_next_button () {
-        if (pw_entry.is_valid && confirm_entry.is_valid) {
+        if (reuse_password.active || (pw_entry.is_valid && confirm_entry.is_valid)) {
             next_button.sensitive = true;
             next_button.has_default = true;
         } else {
             next_button.sensitive = false;
-        }
-    }
-
-    private class ValidatedEntry : Gtk.Entry {
-        public bool is_valid { get; set; default = false; }
-
-        construct {
-            activates_default = true;
-        }
-    }
-
-    private class ErrorRevealer : Gtk.Revealer {
-        public Gtk.Label label_widget;
-
-        public string label {
-            set {
-                label_widget.label = "<span font_size=\"small\">%s</span>".printf (value);
-            }
-        }
-
-        public ErrorRevealer (string label) {
-            label_widget = new Gtk.Label ("<span font_size=\"small\">%s</span>".printf (label));
-            label_widget.halign = Gtk.Align.END;
-            label_widget.justify = Gtk.Justification.RIGHT;
-            label_widget.max_width_chars = 55;
-            label_widget.use_markup = true;
-            label_widget.wrap = true;
-            label_widget.xalign = 1;
-
-            transition_type = Gtk.RevealerTransitionType.CROSSFADE;
-            add (label_widget);
         }
     }
 }
