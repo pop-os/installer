@@ -1,4 +1,4 @@
-class IconChooser: Gtk.EventBox {
+class IconChooser: Gtk.DrawingArea {
     private Gdk.Pixbuf pixbuf;
 
     public string icon_path { get; set; }
@@ -9,13 +9,8 @@ class IconChooser: Gtk.EventBox {
     }
 
     construct {
-        Gtk.DrawingArea drawing_area = new Gtk.DrawingArea() {
-            halign = Gtk.Align.CENTER,
-            hexpand = true
-        };
-
-        drawing_area.set_size_request(128, 128);
-        drawing_area.draw.connect((widget, cr) => {
+        this.set_size_request(128, 128);
+        this.draw.connect((widget, cr) => {
             int width = this.pixbuf.get_width ();
             int height = this.pixbuf.get_height ();
             cr.arc(64.0, 64.0, 60, 0, 2*Math.PI);
@@ -24,14 +19,35 @@ class IconChooser: Gtk.EventBox {
             Gdk.cairo_set_source_pixbuf(cr, this.pixbuf, 1, 1);
             cr.paint();
 
+            if (Gtk.StateFlags.PRELIGHT in this.get_state_flags()) {
+                cr.set_operator(Cairo.Operator.LIGHTEN);
+                cr.set_source_rgba (1, 1, 1, 0.5);
+                cr.rectangle (0, 0, 128, 128);
+                cr.fill();
+            }
+
             return false;
         });
 
-        this.add(drawing_area);
-        this.add_events(Gdk.EventMask.BUTTON_PRESS_MASK);
+        var flags = Gdk.EventMask.BUTTON_PRESS_MASK
+            | Gdk.EventMask.ENTER_NOTIFY_MASK
+            | Gdk.EventMask.LEAVE_NOTIFY_MASK;
+
+        this.add_events(flags);
+
         this.button_press_event.connect(() => {
             this.icon_dialog();
             return false;
+        });
+
+        this.enter_notify_event.connect(() => {
+            this.set_state_flags(Gtk.StateFlags.PRELIGHT, false);
+            this.queue_draw();
+        });
+
+        this.leave_notify_event.connect(() => {
+            this.unset_state_flags(Gtk.StateFlags.PRELIGHT);
+            this.queue_draw();
         });
     }
 
