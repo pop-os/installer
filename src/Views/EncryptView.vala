@@ -39,48 +39,47 @@ public class EncryptView : AbstractInstallerView {
     construct {
         var image = new Gtk.Image.from_icon_name ("drive-harddisk", Gtk.IconSize.DIALOG);
 
-        var overlay_image = new Gtk.Image.from_icon_name ("security-high", Gtk.IconSize.DND);
-        overlay_image.halign = Gtk.Align.END;
-        overlay_image.valign = Gtk.Align.END;
+        var overlay_image = new Gtk.Image.from_icon_name ("security-high", Gtk.IconSize.DND) {
+            halign = Gtk.Align.END,
+            valign = Gtk.Align.END
+        };
 
-        var overlay = new Gtk.Overlay ();
-        overlay.halign = Gtk.Align.CENTER;
-        overlay.valign = Gtk.Align.END;
-        overlay.width_request = 60;
+        var overlay = new Gtk.Overlay () {
+            halign = Gtk.Align.CENTER,
+            valign = Gtk.Align.END,
+            width_request = 60
+        };
+
         overlay.add (image);
         overlay.add_overlay (overlay_image);
 
         var protect_image = new Gtk.Image.from_icon_name ("security-high-symbolic", Gtk.IconSize.LARGE_TOOLBAR);
 
-        var protect_label = new Gtk.Label (_("Encrypting this drive protects data from being read by others with physical access to this device."));
-        protect_label.max_width_chars = 52;
-        protect_label.wrap = true;
-        protect_label.xalign = 0;
+        var protect_label = new Gtk.Label (_("Encrypting this drive protects data from being read by others with physical access to this device.")) {
+            max_width_chars = 52,
+            wrap = true,
+            xalign = 0
+        };
 
         var performance_image = new Gtk.Image.from_icon_name ("utilities-system-monitor-symbolic", Gtk.IconSize.LARGE_TOOLBAR);
 
-        var performance_label = new Gtk.Label (_("Drive encryption may minimally impact read and write speed when performing intense tasks."));
-        performance_label.max_width_chars = 52;
-        performance_label.wrap = true;
-        performance_label.xalign = 0;
+        var performance_label = new Gtk.Label (_("Drive encryption may minimally impact read and write speed when performing intense tasks.")) {
+            max_width_chars = 52,
+            wrap = true,
+            xalign = 0
+        };
 
         var restart_image = new Gtk.Image.from_icon_name ("system-restart-symbolic", Gtk.IconSize.LARGE_TOOLBAR);
 
-        var restart_label = new Gtk.Label (_("The encryption password will be required each time you turn on this device or restart."));
-        restart_label.max_width_chars = 52;
-        restart_label.wrap = true;
-        restart_label.xalign = 0;
+        var restart_label = new Gtk.Label (_("The encryption password will be required each time you turn on this device or restart.")) {
+            max_width_chars = 52,
+            wrap = true,
+            xalign = 0
+        };
 
-        var reuse_password = new Gtk.CheckButton.with_label("Encryption password is the same as user account password.");
-        reuse_password.margin_top = 36;
-        reuse_password.toggled.connect(() => {
-            bool state = reuse_password.active;
-            pw_entry.sensitive = !state;
-            confirm_entry.sensitive = !state;
-
-            confirm_entry.is_valid = confirm_password ();
-            update_next_button ();
-        });
+        reuse_password = new Gtk.CheckButton.with_label("Encryption password is the same as user account password.") {
+            margin_top = 36
+        };
 
         var choice_grid = new Gtk.Grid ();
         choice_grid.orientation = Gtk.Orientation.VERTICAL;
