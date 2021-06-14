@@ -18,12 +18,11 @@ class IconChooser: Gtk.EventBox {
         drawing_area.draw.connect((widget, cr) => {
             int width = this.pixbuf.get_width ();
             int height = this.pixbuf.get_height ();
-            cr.arc(64.0, 64.0, 64, 0, 2*Math.PI);
+            cr.arc(64.0, 64.0, 60, 0, 2*Math.PI);
             cr.clip();
             cr.scale(128.0 / (double) width, 128.0 / (double) height);
             Gdk.cairo_set_source_pixbuf(cr, this.pixbuf, 1, 1);
             cr.paint();
-
 
             return false;
         });
@@ -38,7 +37,9 @@ class IconChooser: Gtk.EventBox {
 
     void load_icon(string path) {
         try {
-            this.pixbuf = new Gdk.Pixbuf.from_file(path);
+            this.pixbuf = new Gdk.Pixbuf.from_file(path)
+                .scale_simple(128, 128, Gdk.InterpType.HYPER);
+
             this.icon_path = path;
         } catch (Error error) {
             warning("Failed to set icon to %s: %s", path, error.message);
