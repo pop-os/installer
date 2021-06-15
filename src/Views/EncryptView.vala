@@ -82,7 +82,7 @@ public class EncryptView : AbstractInstallerView {
         };
 
         reuse_password.toggled.connect(() => {
-            next_button.label = reuse_password.active ? _("Encrypt") : _("Choose Password");
+            next_button.label = reuse_password.active ? _("Encrypt") : _("Set Password");
         });
 
         var choice_grid = new Gtk.Grid ();
@@ -153,7 +153,7 @@ public class EncryptView : AbstractInstallerView {
         var no_encrypt_button = new Gtk.Button.with_label (_("Don't Encrypt"));
         var back_button = new Gtk.Button.with_label (_("Back"));
 
-        next_button = new Gtk.Button.with_label (_("Choose Password"));
+        next_button = new Gtk.Button.with_label (_("Set Password"));
         next_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
         next_button.can_default = true;
 
@@ -169,7 +169,7 @@ public class EncryptView : AbstractInstallerView {
 
         back_button.clicked.connect (() => {
             stack.visible_child = choice_grid;
-            next_button.label = _("Choose Password");
+            next_button.label = _("Set Password");
             next_button.sensitive = true;
             back_button.hide ();
         });
