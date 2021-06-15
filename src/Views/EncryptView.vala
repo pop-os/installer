@@ -175,6 +175,7 @@ public class EncryptView : AbstractInstallerView {
         });
 
         next_button.clicked.connect (() => {
+            var config = Configuration.get_default ();
             bool reuse = reuse_password.active;
             if (!reuse && stack.visible_child == choice_grid) {
                 stack.visible_child = password_grid;
@@ -182,8 +183,11 @@ public class EncryptView : AbstractInstallerView {
                 next_button.label = _("Set Password");
                 back_button.show ();
                 update_next_button ();
-            } else if (reuse || stack.visible_child == password_grid) {
-                Configuration.get_default ().encryption_password = pw_entry.text;
+            } else if (reuse) {
+                config.encryption_password = config.password;
+                next_step ();
+            } else if (stack.visible_child == password_grid) {
+                config.encryption_password = pw_entry.text;
                 next_step ();
             }
         });
