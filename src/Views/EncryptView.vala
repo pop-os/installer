@@ -27,6 +27,8 @@ public class EncryptView : AbstractInstallerView {
     private ValidatedEntry confirm_entry;
     private ValidatedEntry pw_entry;
     private Gtk.LevelBar pw_levelbar;
+    private Gtk.Stack stack;
+    private Gtk.Grid choice_grid;
 
     public EncryptView () {
         Object (
@@ -85,7 +87,7 @@ public class EncryptView : AbstractInstallerView {
             next_button.label = reuse_password.active ? _("Encrypt") : _("Set Password");
         });
 
-        var choice_grid = new Gtk.Grid ();
+        choice_grid = new Gtk.Grid ();
         choice_grid.orientation = Gtk.Orientation.VERTICAL;
         choice_grid.column_spacing = 12;
         choice_grid.row_spacing = 32;
@@ -140,7 +142,7 @@ public class EncryptView : AbstractInstallerView {
         password_grid.add (confirm_entry);
         password_grid.add (confirm_entry_revealer);
 
-        var stack = new Gtk.Stack ();
+        stack = new Gtk.Stack ();
         stack.homogeneous = false;
         stack.transition_type = Gtk.StackTransitionType.SLIDE_LEFT_RIGHT;
         stack.valign = Gtk.Align.CENTER;
@@ -205,6 +207,14 @@ public class EncryptView : AbstractInstallerView {
 
         show_all ();
         back_button.hide ();
+    }
+
+    public void reset () {
+        stack.visible_child = choice_grid;
+        reuse_password.active = false;
+        pw_entry.text = null;
+        confirm_entry.text = null;
+
     }
 
     private bool check_password () {

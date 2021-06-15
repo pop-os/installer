@@ -310,9 +310,12 @@ public class Installer.MainWindow : Gtk.Dialog {
 
         if (Configuration.get_default ().password != null) {
             encrypt_view.reuse_password.show();
+        } else {
+            encrypt_view.reuse_password.hide();
         }
 
         stack.visible_child = encrypt_view;
+        encrypt_view.reset();
     }
 
     private void load_progress_view () {
