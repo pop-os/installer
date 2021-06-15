@@ -81,6 +81,10 @@ public class EncryptView : AbstractInstallerView {
             margin_top = 36
         };
 
+        reuse_password.toggled.connect(() => {
+            next_button.label = reuse_password.active ? _("Encrypt") : _("Choose Password");
+        });
+
         var choice_grid = new Gtk.Grid ();
         choice_grid.orientation = Gtk.Orientation.VERTICAL;
         choice_grid.column_spacing = 12;
