@@ -27,7 +27,7 @@ public class Username : Gtk.Box {
         add (realname_entry);
         add (username_label);
         add (username_entry);
-        add (new Gtk.Label(_("will be used to name your home folder.")) {
+        add (new Gtk.Label(_("This will be used to name your home folder.")) {
             margin_top = 4,
             xalign = (float) 0.0
         });
