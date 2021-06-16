@@ -17,13 +17,14 @@
  */
 
 public class EncryptView : AbstractInstallerView {
-    public signal void next_step ();
+    public signal void next_step();
 
     public Gtk.CheckButton reuse_password;
 
     private ErrorRevealer confirm_entry_revealer;
     private ErrorRevealer pw_error_revealer;
-    private Gtk.Button next_button;
+    private Gtk.Button encrypt_button;
+    private Gtk.Button set_password_button;
     private ValidatedEntry confirm_entry;
     private ValidatedEntry pw_entry;
     private Gtk.LevelBar pw_levelbar;
@@ -83,8 +84,10 @@ public class EncryptView : AbstractInstallerView {
             margin_top = 36
         };
 
-        reuse_password.toggled.connect(() => {
-            next_button.label = reuse_password.active ? _("Encrypt") : _("Set Password");
+        reuse_password.toggled.connect (() => {
+            bool reuse = reuse_password.active;
+            encrypt_button.sensitive = reuse;
+            set_password_button.sensitive = !reuse;
         });
 
         choice_grid = new Gtk.Grid ();
@@ -155,54 +158,60 @@ public class EncryptView : AbstractInstallerView {
         var no_encrypt_button = new Gtk.Button.with_label (_("Don't Encrypt"));
         var back_button = new Gtk.Button.with_label (_("Back"));
 
-        next_button = new Gtk.Button.with_label (_("Set Password"));
-        next_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
-        next_button.can_default = true;
+        encrypt_button = new Gtk.Button.with_label (_("Encrypt")) {
+            sensitive = false,
+            can_default = true
+        };
+        encrypt_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
+
+        set_password_button = new Gtk.Button.with_label (_("Set Password")) { can_default = true };
+        set_password_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
+        set_password_button.grab_focus ();
 
         action_area.add (no_encrypt_button);
         action_area.add (back_button);
-        action_area.add (next_button);
-
-        next_button.grab_focus ();
+        action_area.add (set_password_button);
+        action_area.add (encrypt_button);
 
         no_encrypt_button.clicked.connect (() => {
-            next_step ();
+            Configuration.get_default ().encryption_password = null;
+            next_step();
         });
 
         back_button.clicked.connect (() => {
             stack.visible_child = choice_grid;
-            next_button.label = _("Set Password");
-            next_button.sensitive = true;
+            set_password_button.show ();
             back_button.hide ();
         });
 
-        next_button.clicked.connect (() => {
-            var config = Configuration.get_default ();
-            bool reuse = reuse_password.active;
-            if (!reuse && stack.visible_child == choice_grid) {
-                stack.visible_child = password_grid;
-                pw_entry.grab_focus ();
-                next_button.label = _("Set Password");
-                back_button.show ();
-                update_next_button ();
-            } else if (reuse) {
-                config.encryption_password = config.password;
-                next_step ();
-            } else if (stack.visible_child == password_grid) {
-                config.encryption_password = pw_entry.text;
-                next_step ();
-            }
+        set_password_button.clicked.connect (() => {
+            stack.visible_child = password_grid;
+            pw_entry.grab_focus ();
+            back_button.show ();
+            update_encrypt_button ();
+            set_password_button.hide ();
         });
 
-        pw_entry.changed.connect (() => {
+        encrypt_button.clicked.connect (() => {
+            var config = Configuration.get_default ();
+            if (stack.visible_child == choice_grid) {
+                config.encryption_password = config.password;
+            } else {
+                config.encryption_password = pw_entry.text;
+            }
+
+            next_step ();
+        });
+
+        pw_entry.changed.connect( () => {
             pw_entry.is_valid = check_password ();
             confirm_entry.is_valid = confirm_password ();
-            update_next_button ();
+            update_encrypt_button ();
         });
 
         confirm_entry.changed.connect (() => {
             confirm_entry.is_valid = confirm_password ();
-            update_next_button ();
+            update_encrypt_button ();
         });
 
         show_all ();
@@ -214,7 +223,6 @@ public class EncryptView : AbstractInstallerView {
         reuse_password.active = false;
         pw_entry.text = null;
         confirm_entry.text = null;
-
     }
 
     private bool check_password () {
@@ -271,12 +279,12 @@ public class EncryptView : AbstractInstallerView {
         return false;
     }
 
-    private void update_next_button () {
-        if (reuse_password.active || (pw_entry.is_valid && confirm_entry.is_valid)) {
-            next_button.sensitive = true;
-            next_button.has_default = true;
+    private void update_encrypt_button () {
+        if (pw_entry.is_valid && confirm_entry.is_valid) {
+            encrypt_button.sensitive = true;
+            encrypt_button.has_default = true;
         } else {
-            next_button.sensitive = false;
+            encrypt_button.sensitive = false;
         }
     }
 }
