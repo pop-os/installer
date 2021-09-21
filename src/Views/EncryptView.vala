@@ -90,6 +90,8 @@ public class EncryptView : AbstractInstallerView {
             set_password_button.sensitive = !reuse;
         });
 
+        reuse_password.set_active (true);
+
         choice_grid = new Gtk.Grid ();
         choice_grid.orientation = Gtk.Orientation.VERTICAL;
         choice_grid.column_spacing = 12;
