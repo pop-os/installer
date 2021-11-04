@@ -87,6 +87,7 @@ public class EncryptView : AbstractInstallerView {
         reuse_password.toggled.connect (() => {
             bool reuse = reuse_password.active;
             encrypt_button.sensitive = reuse;
+            encrypt_button.grab_focus ();
             set_password_button.sensitive = !reuse;
         });
 
@@ -219,7 +220,6 @@ public class EncryptView : AbstractInstallerView {
     }
 
     public void reset () {
-        reuse_password.grab_focus ();
         stack.visible_child = choice_grid;
         reuse_password.active = true;
         pw_entry.text = null;
