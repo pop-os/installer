@@ -315,7 +315,7 @@ public class Installer.MainWindow : Gtk.Dialog {
         }
 
         stack.visible_child = encrypt_view;
-        encrypt_view.reset();
+        encrypt_view.reset ();
     }
 
     private void load_progress_view () {
@@ -374,6 +374,7 @@ public class Installer.MainWindow : Gtk.Dialog {
         success_view = new SuccessView (log);
         stack.add (success_view);
         stack.visible_child = success_view;
+        success_view.reset ();
 
         if (success_view.test_label != null && start_date != null && end_date != null) {
             var time_span = end_date.difference (start_date);

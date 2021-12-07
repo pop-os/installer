@@ -19,6 +19,8 @@
 public class SuccessView : AbstractInstallerView {
     public static int RESTART_TIMEOUT = 30;
 
+    public Gtk.Button restart_button;
+
     public string log { get; construct; }
 
     public SuccessView (string log) {
@@ -69,8 +71,8 @@ public class SuccessView : AbstractInstallerView {
         var shutdown_button = new Gtk.Button.with_label (_("Shut Down"));
         shutdown_button.clicked.connect (Utils.shutdown);
 
+        restart_button = new Gtk.Button.with_label (_("Restart Device"));
         if (!requires_workaround) {
-            var restart_button = new Gtk.Button.with_label (_("Restart Device"));
             restart_button.get_style_context ().add_class (Gtk.STYLE_CLASS_SUGGESTED_ACTION);
             restart_button.clicked.connect (Utils.restart);
 
@@ -81,6 +83,12 @@ public class SuccessView : AbstractInstallerView {
 
 
         show_all ();
+    }
+
+    public void reset () {
+        if (restart_button != null) {
+            restart_button.grab_focus ();
+        }
     }
 
     static bool requires_workaround () {
