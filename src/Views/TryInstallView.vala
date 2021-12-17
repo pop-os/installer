@@ -158,12 +158,12 @@ public class Installer.TryInstallView : AbstractInstallerView {
     }
 
     private bool handle_key_press (Gtk.Button button, Gdk.EventKey event) {
-        if (event.keyval == Gdk.Key.Return) {
-            button.clicked ();
+        if (event.keyval == Gdk.Key.Return && next_button.sensitive) {
             next_button.clicked ();
             return true;
+        } else if (event.keyval == Gdk.Key.Return && !next_button.sensitive) {
+            return true;
         }
-
         return false;
     }
 }

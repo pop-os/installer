@@ -52,7 +52,6 @@ Applications will need to be reinstalled manually."
             refresh_description,
             (button) => {
                 this.refresh_button = button;
-                button.key_press_event.connect((event) => handle_key_press(button, event));
                 button.notify["active"].connect(() => {
                     if (button.active) {
                         this.next_button.sensitive = button.active;
@@ -61,6 +60,7 @@ Applications will need to be reinstalled manually."
                         this.next_button.sensitive = false;
                     }
                 });
+                button.key_press_event.connect((event) => handle_key_press(button, event));
             }
         );
 
@@ -70,7 +70,6 @@ Applications will need to be reinstalled manually."
             install_description,
             (button) => {
                 this.install_button = button;
-                button.key_press_event.connect((event) => handle_key_press(button, event));
                 button.notify["active"].connect(() => {
                     if (button.active) {
                         this.next_button.sensitive = button.active;
@@ -79,6 +78,7 @@ Applications will need to be reinstalled manually."
                         this.next_button.sensitive = false;
                     }
                 });
+                button.key_press_event.connect((event) => handle_key_press(button, event));
             }
         );
 
@@ -131,13 +131,13 @@ Applications will need to be reinstalled manually."
         }
     }
 
-    private bool handle_key_press(Gtk.Button button, Gdk.EventKey event) {
-        if (event.keyval == Gdk.Key.Return) {
-            button.clicked();
-            next_button.clicked();
+    private bool handle_key_press (Gtk.Button button, Gdk.EventKey event) {
+        if (event.keyval == Gdk.Key.Return && next_button.sensitive) {
+            next_button.clicked ();
+            return true;
+        } else if (event.keyval == Gdk.Key.Return && !next_button.sensitive) {
             return true;
         }
-
         return false;
     }
 }
