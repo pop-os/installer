@@ -238,7 +238,7 @@ public class Installer.LanguageView : AbstractInstallerView {
             Environment.set_variable ("LANGUAGE", lang_entry.get_code (), true);
             Intl.textdomain (Build.GETTEXT_PACKAGE);
             lang_variant_widget.show_variants (_("Languages"), "<b>%s</b>".printf (lang_entry.name));
-    }
+    } 
 
     private bool timeout () {
         var row = lang_variant_widget.main_listbox.get_row_at_index (select_number);
@@ -350,5 +350,9 @@ public class Installer.LanguageView : AbstractInstallerView {
 
             add (grid);
         }
+    }
+
+    public void reset() {
+        lang_variant_widget.main_listbox.get_selected_row ().grab_focus ();
     }
 }

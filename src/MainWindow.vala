@@ -186,6 +186,7 @@ public class Installer.MainWindow : Gtk.Dialog {
                 language_view.next_step.connect (() => load_keyboard_view ());
                 stack.add (language_view);
                 stack.visible_child = language_view;
+                language_view.reset();
                 stack.show_all();
             }
 
