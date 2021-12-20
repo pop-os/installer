@@ -55,22 +55,6 @@ public class Installer.TryInstallView : AbstractInstallerView {
 
         var content_overlay = new Gtk.Overlay ();
 
-        // TODO: Once we support more options, give an example here
-        // ("More options, such as…") if there's space…
-        var decrypt_description = new Gtk.Label (_("More options may be available after unlocking encrypted storage"));
-
-        var decrypt_button = new Gtk.Button.with_label (_("Unlock Encrypted Storage…"));
-
-        var decrypt_infobar = new Gtk.InfoBar ();
-        decrypt_infobar.message_type = Gtk.MessageType.INFO;
-        decrypt_infobar.valign = Gtk.Align.START;
-
-        var infobar_action_area = decrypt_infobar.get_action_area () as Gtk.Container;
-        infobar_action_area.add (decrypt_button);
-
-        var infobar_content_area = decrypt_infobar.get_content_area ();
-        infobar_content_area.add (decrypt_description);
-
         var grid = new Gtk.Grid ();
         grid.margin = 12;
         grid.margin_top = 24;
@@ -81,8 +65,6 @@ public class Installer.TryInstallView : AbstractInstallerView {
         grid.attach (type_scrolled, 1, 0, 1, 2);
 
         content_overlay.add (grid);
-        content_overlay.add_overlay (decrypt_infobar);
-
         content_area.margin = 0;
         content_area.valign = Gtk.Align.FILL;
         content_area.column_homogeneous = true;
@@ -122,20 +104,6 @@ public class Installer.TryInstallView : AbstractInstallerView {
             () => next_step ()
         );
 
-        var refresh_install_button = button_creator.new_button (
-            _("Refresh Install"),
-            "view-refresh",
-            _("Reinstall while keeping user accounts and files. Applications will need to be reinstalled manually."),
-            () => refresh_step ()
-        );
-
-        //  var alongside_button = button_creator.new_button (
-        //      _("Install Alongside OS"),
-        //      "drive-multidisk",
-        //      _("Install %s next to one or more existing OS installations").printf (pretty_name),
-        //      () => alongside_step ()
-        //  );
-
         var custom_button = button_creator.new_button (
             _("Custom (Advanced)"),
             "disk-utility",
@@ -152,51 +120,41 @@ public class Installer.TryInstallView : AbstractInstallerView {
 
         var sizegroup = new Gtk.SizeGroup (Gtk.SizeGroupMode.BOTH);
         sizegroup.add_widget (clean_install_button.type_image);
-        sizegroup.add_widget (refresh_install_button.type_image);
-        //  sizegroup.add_widget (alongside_button.type_image);
+
         sizegroup.add_widget (custom_button.type_image);
 
         type_grid.add (clean_install_button);
-        type_grid.add (refresh_install_button);
-        //  type_grid.add (alongside_button);
+
+        var options = InstallOptions.get_default ();
+
+        if (!options.is_recovery_mode && options.is_refreshable) {
+            var refresh_install_button = button_creator.new_button (
+                _("Refresh Install"),
+                "view-refresh",
+                _("Reinstall while keeping user accounts and files. Applications will need to be reinstalled manually."),
+                () => refresh_step ()
+            );
+
+            sizegroup.add_widget (refresh_install_button.type_image);
+
+            type_grid.add (refresh_install_button);
+
+            refresh_install_button.key_press_event.connect ((event) => handle_key_press (refresh_install_button, event));
+        }
+
         type_grid.add (new Gtk.Separator (Gtk.Orientation.HORIZONTAL));
         type_grid.add (custom_button);
 
         demo_button.key_press_event.connect ((event) => handle_key_press (demo_button, event));
         clean_install_button.key_press_event.connect ((event) => handle_key_press (clean_install_button, event));
-        refresh_install_button.key_press_event.connect ((event) => handle_key_press (refresh_install_button, event));
-        //  alongside_button.key_press_event.connect ((event) => handle_key_press (alongside_button, event));
+
         custom_button.key_press_event.connect ((event) => handle_key_press (custom_button, event));
 
-        var options = InstallOptions.get_default ();
 
-        decrypt_button.clicked.connect (() => {
-            var decrypt_dialog = new DecryptDialog ();
-            decrypt_dialog.update_list ();
-            decrypt_dialog.transient_for = (Gtk.Window) get_toplevel ();
-            decrypt_dialog.run ();
-
-            // The dialog will respond with a delete event once it has decrypted a LUKS partition.
-            decrypt_dialog.response.connect ((resp) => {
-                if (resp == Gtk.ResponseType.DELETE_EVENT) {
-                    refresh_install_button.visible = options.get_options ().has_refresh_options ();
-                    //  alongside_button.visible = options.get_options ().has_alongside_options ();
-
-                    var nlocked = partitions_locked ();
-                    decrypt_infobar.visible = nlocked != 0;
-                }
-            });
-        });
 
         show_all ();
 
         clean_install_button.grab_focus ();
-
-        // Hide the info bar if no encrypted partitions are found.
-        decrypt_infobar.visible = partitions_locked () != 0;
-
-        refresh_install_button.visible = options.get_options ().has_refresh_options ();
-        //  alongside_button.visible = options.get_options ().has_alongside_options ();
     }
 
     private bool handle_key_press (Gtk.Button button, Gdk.EventKey event) {
@@ -208,17 +166,4 @@ public class Installer.TryInstallView : AbstractInstallerView {
 
         return false;
     }
-}
-
-uint32 partitions_locked () {
-    uint32 nlocked = 0;
-    var options = InstallOptions.get_default ();
-    foreach (unowned Distinst.Partition partition in options.borrow_disks ().get_encrypted_partitions ()) {
-        string path = Utils.string_from_utf8 (partition.get_device_path ());
-        if (! options.is_unlocked (path)) {
-            nlocked += 1;
-        }
-    }
-
-    return nlocked;
 }

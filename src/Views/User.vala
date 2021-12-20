@@ -19,7 +19,7 @@ public class UserView : AbstractInstallerView {
 
     construct {
         cancel_button.label = _("Back");
-        var user_icon = new IconChooser("/usr/share/pixmaps/faces/penguin.jpg") {
+        var user_icon = new IconChooser("/usr/share/pixmaps/faces/pop-robot.png") {
             halign = Gtk.Align.CENTER,
             hexpand = true
         };
@@ -94,6 +94,7 @@ public class UserView : AbstractInstallerView {
                 stack.visible_child = password_section;
                 update_next_button();
                 pw_entry.grab_focus();
+                this.cancel_button.show();
                 return;
             }
             var config = Configuration.get_default ();
@@ -122,6 +123,15 @@ public class UserView : AbstractInstallerView {
         confirm_entry.changed.connect (() => {
             confirm_entry.is_valid = confirm_password ();
             update_next_button ();
+        });
+
+        cancel.connect(() => {
+            if (this.stack.visible_child != this.user_section) {
+                this.stack.visible_child = this.user_section;
+                this.update_next_button();
+                this.reset_password();
+                this.cancel_button.hide();
+            }
         });
 
         show_all ();

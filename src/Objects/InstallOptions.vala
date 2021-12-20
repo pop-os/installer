@@ -26,6 +26,8 @@ public class InstallOptions : GLib.Object {
     private Distinst.InstallOptions _options;
     private Distinst.Disks disks;
     public Distinst.InstallOption? selected_option;
+    public bool is_recovery_mode = false;
+    public bool is_refreshable = false;
 
     private Gee.ArrayList<string> unlocked_devices { get; set; default = new Gee.ArrayList<string> (); }
 
@@ -38,6 +40,11 @@ public class InstallOptions : GLib.Object {
         }
 
         return _options_object;
+    }
+
+    public void deactivate_logical_devices() {
+        Distinst.deactivate_logical_devices();
+        unlocked_devices.clear ();
     }
 
     public void set_minimum_size (uint64 size) {
@@ -68,6 +75,9 @@ public class InstallOptions : GLib.Object {
     }
 
     public void decrypt(string device, string pv, string pass) throws GLib.Error {
+        this.deactivate_logical_devices();
+        this.get_updated_options();
+
         try {
             Utils.decrypt_partition (disks, device, pv, pass);
         } catch (Error e) {
@@ -114,6 +124,13 @@ public class InstallOptions : GLib.Object {
 
     public unowned Distinst.Disks borrow_disks () {
         return disks;
+    }
+
+    public void reset () {
+        _options = null;
+        selected_option = null;
+        unlocked_devices.clear();
+        this.get_options();
     }
 
     // Transder ownership of the disks to the caller.
