@@ -186,6 +186,7 @@ public class Installer.MainWindow : Gtk.Dialog {
                 language_view.next_step.connect (() => load_keyboard_view ());
                 stack.add (language_view);
                 stack.visible_child = language_view;
+                language_view.reset();
                 stack.show_all();
             }
 
@@ -652,6 +653,7 @@ public class Installer.MainWindow : Gtk.Dialog {
 
         disk_view.previous_view = try_install_view;
         stack.visible_child = disk_view;
+        this.disk_view.reset();
         disk_view.load.begin (minimum_disk_size);
 
         load_check_view ();
