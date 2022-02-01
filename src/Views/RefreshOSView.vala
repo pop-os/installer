@@ -72,7 +72,6 @@ public class RefreshOSView: OptionsView {
                         decrypted_os_button = button;
                     }
 
-                    button.key_press_event.connect ((event) => handle_key_press (button, event));
                     button.notify["active"].connect (() => {
                         if (button.active) {
                             base.options.get_children ().foreach ((child) => {
@@ -91,6 +90,7 @@ public class RefreshOSView: OptionsView {
                             next_button.sensitive = false;
                         }
                     });
+                    button.key_press_event.connect ((event) => handle_key_press (button, event));
                 }
             );
         }
@@ -109,10 +109,11 @@ public class RefreshOSView: OptionsView {
         return appended;
     }
 
-    private bool handle_key_press (Gtk.Button button, Gdk.EventKey event) {
-        if (event.keyval == Gdk.Key.Return) {
-            button.clicked ();
-            next_button.clicked ();
+    private bool handle_key_press(Gtk.Button button, Gdk.EventKey event) {
+        if (event.keyval == Gdk.Key.Return && next_button.sensitive) {
+            next_button.clicked();
+            return true;
+        } else if (event.keyval == Gdk.Key.Return && !next_button.sensitive) {
             return true;
         }
 

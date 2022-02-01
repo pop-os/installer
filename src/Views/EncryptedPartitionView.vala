@@ -46,7 +46,6 @@ public class EncryptedPartitionView: OptionsView {
             device.device.path,
             null,
             (button) => {
-                button.key_press_event.connect((event) => handle_key_press(button, event));
                 button.notify["active"].connect(() => {
                     if (button.active) {
                         base.options.get_children ().foreach ((child) => {
@@ -65,6 +64,7 @@ public class EncryptedPartitionView: OptionsView {
 
                     this.next_button.sensitive = button.active;
                 });
+                button.key_press_event.connect((event) => handle_key_press(button, event));
             }
         );
     }
@@ -135,9 +135,10 @@ public class EncryptedPartitionView: OptionsView {
     }
 
     private bool handle_key_press(Gtk.Button button, Gdk.EventKey event) {
-        if (event.keyval == Gdk.Key.Return) {
-            button.clicked();
+        if (event.keyval == Gdk.Key.Return && next_button.sensitive) {
             next_button.clicked();
+            return true;
+        } else if (event.keyval == Gdk.Key.Return && !next_button.sensitive) {
             return true;
         }
 
