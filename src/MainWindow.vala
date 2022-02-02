@@ -445,6 +445,7 @@ public class Installer.MainWindow : Gtk.Dialog {
                 }
 
                 this.stack.visible_child = refresh_view;
+                refresh_view.reset();
 
                 return GLib.Source.REMOVE;
             });
@@ -653,8 +654,8 @@ public class Installer.MainWindow : Gtk.Dialog {
 
         disk_view.previous_view = try_install_view;
         stack.visible_child = disk_view;
-        this.disk_view.reset();
         disk_view.load.begin (minimum_disk_size);
+        this.disk_view.reset();
 
         load_check_view ();
     }

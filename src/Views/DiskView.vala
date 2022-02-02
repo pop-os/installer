@@ -120,5 +120,6 @@ public class Installer.DiskView : OptionsView {
 
     public void reset() {
         next_button.sensitive = false;
+        base.select_first_option(false);
     }
 }

@@ -52,12 +52,14 @@ public class OptionsView: AbstractInstallerView {
         action_area.homogeneous = true;
     }
 
-    protected void select_first_option () {
+    protected void select_first_option (bool clickOption=true) {
         weak Gtk.Widget first_option = options.get_children ().nth_data (0);
         if (first_option != null && first_option is Gtk.ToggleButton) {
             var button = (Gtk.ToggleButton) first_option;
             button.grab_focus ();
-            button.clicked ();
+            if (clickOption) {
+                button.clicked ();
+            }
         }
     }
 

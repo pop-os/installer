@@ -140,4 +140,8 @@ Applications will need to be reinstalled manually."
         }
         return false;
     }
+
+    public void reset() {
+        base.select_first_option(false);
+    }
 }
