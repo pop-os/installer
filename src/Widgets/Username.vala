@@ -1,3 +1,6 @@
+const int UT_NAMESIZE = 32;
+const int MAX_NAME_LEN = UT_NAMESIZE - 1;
+
 public class Username : Gtk.Box {
     public signal void changed ();
     public new signal void activate ();
@@ -11,7 +14,9 @@ public class Username : Gtk.Box {
         realname_entry.grab_focus ();
         realname_entry.activate.connect (() => activate());
         realname_entry.changed.connect (() => {
-            username_entry.set_text (realname_entry.get_text());
+            string realname = validate_realname (realname_entry.get_text ());
+            realname_entry.set_text (realname);
+            username_entry.set_text (validate (realname));
         });
 
         var username_label = new Granite.HeaderLabel (_("User Name"));
@@ -46,24 +51,89 @@ public class Username : Gtk.Box {
     }
 
     public bool is_ready () {
+        string username = username_entry.get_text ();
         return realname_entry.get_text_length () != 0
-            && username_entry.get_text_length () != 0;
+            && username_entry.get_text_length () != 0
+            && str_contains_alpha(username)
+            && !is_forbidden(username);
     }
 
     private string validate (string input) {
         var text = new StringBuilder ();
 
-        int i = 0;
-        char c = input[i];
-        while (c != '\0') {
-            char cl = c.tolower ();
-            if (cl.isalnum () || cl == '_') {
-                text.append_c (cl);
+        for (int i = 0; i < input.length; i++) {
+            char c = input[i];
+
+            // The first char must be alphabetic.
+            // The following may be alphanumeric, and '_', '.', or '-'.
+            bool append = text.str.length > 1
+                ? c.isalnum () || c == '_' || c == '.' || c == '-'
+                : c.isalpha ();
+
+            if (append) {
+                text.append_c (c.tolower ());
+
+                // Ensure that the validated string is no more than `MAX_NAME_LEN` in length.
+                if (text.str.length == MAX_NAME_LEN) break;
             }
-            i++;
-            c = input[i];
         }
 
         return (owned) text.str;
     }
+}
+
+// Strip any `:` from real names.
+private string validate_realname(string input) {
+    var text = new StringBuilder ();
+
+    int i = 0;
+    char c = input[i];
+
+    while (c != '\0') {
+        if (c != ':') {
+            text.append_c (c.tolower ());
+        }
+
+        i += 1;
+        c = input[i];
+    }
+
+    return (owned) text.str;
+}
+
+// True if string contains alphabetic characters.
+private bool str_contains_alpha(string input) {
+    if (input.length == 0) {
+        return false;
+    }
+
+    for (int i = 0; i < input.length; i++) {
+        if (input[i].isalpha ()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// Forbidden usernames
+const string[] FORBIDDEN = {
+    "adm",
+    "administrator",
+    "lpadmin",
+    "sbuild",
+    "sudo",
+    "libvirt",
+    "docker"
+};
+
+// Check if a username is forbidden
+private bool is_forbidden(string input) {
+    for (int i = 0; i < FORBIDDEN.length; i++) {
+        if (strcmp (FORBIDDEN[i], input) == 0) {
+            return true;
+        }
+    }
+
+    return false;
 }
