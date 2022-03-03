@@ -135,5 +135,8 @@ private bool is_forbidden(string input) {
         }
     }
 
+    // Also check if username already exists
+    if (Posix.getpwnam (input) != null) return true;
+
     return false;
 }
