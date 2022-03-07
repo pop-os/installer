@@ -66,9 +66,9 @@ public class Username : Gtk.Box {
 
             // The first char must be alphabetic.
             // The following may be alphanumeric, and '_', '.', or '-'.
-            bool append = text.str.length > 1
-                ? c.isalnum () || c == '_' || c == '.' || c == '-'
-                : c.isalpha ();
+            bool append = text.str.length == 0
+                ? c.isalpha ()
+                : c.isalnum () || c == '_' || c == '.' || c == '-';
 
             if (append) {
                 text.append_c (c.tolower ());
