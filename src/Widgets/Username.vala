@@ -91,7 +91,7 @@ private string validate_realname(string input) {
 
     while (c != '\0') {
         if (c != ':') {
-            text.append_c (c.tolower ());
+            text.append_c (c);
         }
 
         i += 1;
