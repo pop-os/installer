@@ -12,7 +12,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Launchpad-Export-Date: 2016-09-27 06:42+0000\n"
 
 #: src/MainWindow.vala:44 src/Views/TryInstallView.vala:93
 #, fuzzy, c-format
@@ -30,7 +29,7 @@ msgstr "%s…"
 
 #: src/Helpers/LogHelper.vala:52
 msgid "Unable to set the Distinst log callback"
-msgstr ""
+msgstr "无法获取远程日志数据(Unable to set the Distinst log callback)"
 
 #: src/Helpers/LogHelper.vala:54
 msgid "Starting installation"
@@ -71,7 +70,7 @@ msgstr "忽略"
 
 #: src/Views/CheckView.vala:203
 msgid "Not Enough Space"
-msgstr "空间不足"
+msgstr "硬盘空间不足"
 
 #: src/Views/CheckView.vala:204
 #, c-format
@@ -79,7 +78,7 @@ msgid ""
 "There is not enough room on your device to install %s. We recommend a "
 "minimum of %s of storage."
 msgstr ""
-"您的设备上没有足够的空间来安装 %s 。"
+"您的设备上没有足够的硬盘空间来安装 %s 。"
 "我们建议至少有 %s 的存储空间来安装。"
 
 #: src/Views/CheckView.vala:215
@@ -300,7 +299,7 @@ msgid ""
 "will erase ALL data on the selected partition.</b>"
 msgstr ""
 "选择哪些分区要在此设备上使用。"
-"<b>选择格式化(Format)将清除该分区上的所以数据。</b>"
+"<b>选择 格式化(Format) 将清除该分区上的所以数据。</b>"
 
 #: src/Views/PartitioningView.vala:52
 msgid "You must at least select a <b>Root (/)</b> partition."
@@ -346,7 +345,7 @@ msgstr "执行安装或在 Demo 模式里体验"
 msgid ""
 "You can install %s on this device now, or try Demo Mode without installing."
 msgstr ""
-"现在您可以在此计算机上安装 %s ，或在 Demo 模式里体验。"
+"现在您可以在此计算机上安装 %s ，或在 Demo 模式 里体验。"
 
 #: src/Views/TryInstallView.vala:53
 msgid ""
@@ -354,7 +353,7 @@ msgid ""
 "operating system will be unchanged. Performance and features may not reflect "
 "the installed experience."
 msgstr ""
-"在 Demo 模式里，您所做的更改将不会保存，来自以前操作系统的数据将保持不变。"
+"在 Demo 模式 里，您所做的更改将不会保存，来自以前操作系统的数据将保持不变。"
 "但性能和功能将会受到限制。"
 
 #: src/Views/TryInstallView.vala:64
@@ -362,7 +361,7 @@ msgid ""
 "You can always return to the installer from Demo Mode by selecting the "
 "Install icon."
 msgstr ""
-"您始终可以通过点击安装器(installer)的图标来返回安装。"
+"您始终可以通过点击 安装器(installer) 的图标来返回安装。"
 
 #: src/Views/SuccessView.vala:34
 msgid "Continue Setting Up"
@@ -391,7 +390,7 @@ msgstr "解锁该分区 (LUKS) "
 
 #: src/Widgets/DecryptMenu.vala:58
 msgid "Enter the partition's encryption password and set a LUKS device name."
-msgstr "输入LUKS卷的密码并设置一个LUKS设备名称"
+msgstr "输入 LUKS卷 的密码并设置一个LUKS设备名称"
 
 #: src/Widgets/DecryptMenu.vala:71
 msgid "Password:"
@@ -407,7 +406,7 @@ msgstr "解密"
 
 #: src/Widgets/DecryptMenu.vala:125
 msgid "LUKS volume was decrypted"
-msgstr "LUKS加密卷已被解密"
+msgstr "LUKS卷 已被解密"
 
 #: src/Widgets/DiskBar.vala:127
 #, c-format
