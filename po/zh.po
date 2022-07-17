@@ -370,7 +370,7 @@ msgstr "继续设置"
 #: src/Views/SuccessView.vala:42
 #, c-format
 msgid "Your device will automatically restart to %s in %i seconds."
-msgstr "您的设备将会在 %i 后自动重启以进入 %s 。"
+msgstr "你的计算机为了进入 %s 会在 %i 后重新启动。"
 
 #: src/Views/SuccessView.vala:43
 msgid ""
