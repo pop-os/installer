@@ -45,7 +45,8 @@ public class Installer.PartitioningView : AbstractInstallerView {
         EFI
     }
 
-    const uint64 REQUIRED_EFI_SECTORS = 500 * 1000 * 1000 / 512;
+    // Require minimum ESP size of 1 GB
+    const uint64 REQUIRED_EFI_SECTORS = 1000 * 1000 * 1000 / 512;
 
     construct {
         mounts = new Gee.ArrayList<Installer.Mount> ();
@@ -62,7 +63,7 @@ public class Installer.PartitioningView : AbstractInstallerView {
                 break;
             case Distinst.PartitionTable.GPT:
                 // Device is in EFI mode, so we also require a boot partition
-                required_description = _("You must at least select a <b>Root (/)</b> partition, plus a <b>Boot (/boot/efi)</b> partition that is at least 500 MiB and on a GPT disk.");
+                required_description = _("You must at least select a <b>Root (/)</b> partition, plus a <b>Boot (/boot/efi)</b> partition that is at least 1 GB and on a GPT disk.");
                 break;
         }
 
