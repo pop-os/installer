@@ -149,25 +149,31 @@ msgstr "Slet og Installér"
 
 #: src/Views/EncryptView.vala:47
 msgid "Drive Encryption"
-msgstr ""
+msgstr "Drevkryptering"
 
 #: src/Views/EncryptView.vala:53
 msgid ""
 "Encrypting this drive protects data from being read by others with physical "
 "access to this device."
 msgstr ""
+"Kryptering af dette drev beskytter data fra at blive læst af andre med fysisk "
+"adgang til denne enhed"
 
 #: src/Views/EncryptView.vala:60
 msgid ""
 "Drive encryption may minimally impact read and write speed when performing "
 "intense tasks."
 msgstr ""
+"Drevkryptering kan have minimal indvirkning på læse- og skrivehastighed under udførelse "
+"intense opgaver."
 
 #: src/Views/EncryptView.vala:67
 msgid ""
 "The encryption password will be required each time you turn on this device "
 "or restart."
 msgstr ""
+"Krypteringsadgangskoden vil være påkrævet hver gang du tænder denne enhed"
+"eller genstarter."
 
 #: src/Views/EncryptView.vala:83
 msgid ""
@@ -175,18 +181,21 @@ msgid ""
 "data.</b> This is a unique password for this device, not the password for "
 "your user account."
 msgstr ""
+"Hvis du glemmer krypteringsadgangskoden, vil du ikke være i stand til at gendanne "
+"data.</b> Dette er en unik adgangskode til denne enhed, ikke adgangskoden til "
+"din brugerkonto."
 
 #: src/Views/EncryptView.vala:90
 msgid "Choose Encryption Password"
-msgstr ""
+msgstr "Vælg Krypteringsadgangskode"
 
 #: src/Views/EncryptView.vala:105
 msgid "Confirm Password"
-msgstr ""
+msgstr "Bekræft adgangskode"
 
 #: src/Views/EncryptView.vala:141
 msgid "Don't Encrypt"
-msgstr ""
+msgstr "Krypter ikke"
 
 #: src/Views/EncryptView.vala:142 src/Views/KeyboardLayoutView.vala:54
 #: src/Views/TryInstallView.vala:89
@@ -195,15 +204,15 @@ msgstr "Tilbage"
 
 #: src/Views/EncryptView.vala:144 src/Views/EncryptView.vala:159
 msgid "Choose Password"
-msgstr ""
+msgstr "Vælg adgangskode"
 
 #: src/Views/EncryptView.vala:168
 msgid "Set Password"
-msgstr ""
+msgstr "Indstil adgangskode"
 
 #: src/Views/EncryptView.vala:231
 msgid "Passwords do not match"
-msgstr ""
+msgstr "Adgangskoderne er ikke ens"
 
 #: src/Views/ErrorView.vala:38
 msgid "Could Not Install"
@@ -292,20 +301,25 @@ msgid ""
 "Select which partitions to use across all drives. <b>Selecting \"Format\" "
 "will erase ALL data on the selected partition.</b>"
 msgstr ""
+"Vælg hvilke partitioner, der skal bruges på tværs af alle drev. <b>Vælger \"Formater\" "
+"vil slette ALLE data på den valgte partition.</b>"
 
 #: src/Views/PartitioningView.vala:52
 msgid "You must at least select a <b>Root (/)</b> partition."
 msgstr ""
+"Du skal som minimum vælge en <b>Root (/)</b> partition."
 
 #: src/Views/PartitioningView.vala:56
 msgid ""
 "You must at least select a <b>Root (/)</b> partition and a <b>Boot (/boot/"
 "efi)</b> partition."
 msgstr ""
+"Du skal som minimum vælge en <b>Root (/)</b> partition og en <b>Boot (/boot/"
+"efi)</b> partition."
 
 #: src/Views/PartitioningView.vala:60
 msgid "It is also recommended to select a <b>Swap</b> partition."
-msgstr ""
+msgstr "Det anbefales også at vælge en <b>Swap</b> partition."
 
 #: src/Views/PartitioningView.vala:89
 #, fuzzy
@@ -381,27 +395,27 @@ msgstr "Demo tilstand nedlukning"
 
 #: src/Widgets/DecryptMenu.vala:54
 msgid "Decrypt This Partition"
-msgstr ""
+msgstr "Dekrypter Denne Partition"
 
 #: src/Widgets/DecryptMenu.vala:58
 msgid "Enter the partition's encryption password and set a LUKS device name."
-msgstr ""
+msgstr "Indtast partitionens krypteringsadgangskode og angiv et LUKS-enhedsnavn"
 
 #: src/Widgets/DecryptMenu.vala:71
 msgid "Password:"
-msgstr ""
+msgstr "Adgangskode"
 
 #: src/Widgets/DecryptMenu.vala:84
 msgid "Device name:"
-msgstr ""
+msgstr "Enhedsnavn"
 
 #: src/Widgets/DecryptMenu.vala:97
 msgid "Decrypt"
-msgstr ""
+msgstr "Dekrypter"
 
 #: src/Widgets/DecryptMenu.vala:125
 msgid "LUKS volume was decrypted"
-msgstr ""
+msgstr "LUKS volumen blev dekrypteret"
 
 #: src/Widgets/DiskBar.vala:127
 #, c-format
@@ -415,15 +429,15 @@ msgstr ""
 
 #: src/Widgets/PartitionMenu.vala:60
 msgid "Use partition:"
-msgstr ""
+msgstr "Brug partition:"
 
 #: src/Widgets/PartitionMenu.vala:71
 msgid "Format:"
-msgstr ""
+msgstr "Formater:"
 
 #: src/Widgets/PartitionMenu.vala:81
 msgid "Use as:"
-msgstr ""
+msgstr "Brug som:"
 
 #: src/Widgets/PartitionMenu.vala:87
 msgid "Root (/)"
@@ -431,7 +445,7 @@ msgstr ""
 
 #: src/Widgets/PartitionMenu.vala:88
 msgid "Home (/home)"
-msgstr ""
+msgstr "Hjem (/home)"
 
 #: src/Widgets/PartitionMenu.vala:89
 #, c-format
@@ -444,15 +458,15 @@ msgstr ""
 
 #: src/Widgets/PartitionMenu.vala:91
 msgid "Custom"
-msgstr ""
+msgstr "Tilpasset"
 
 #: src/Widgets/PartitionMenu.vala:95
 msgid "Custom:"
-msgstr ""
+msgstr "Tilpasset:"
 
 #: src/Widgets/PartitionMenu.vala:103
 msgid "Filesystem:"
-msgstr ""
+msgstr "Filsystem"
 
 #: src/Widgets/PartitionMenu.vala:109
 #, fuzzy
