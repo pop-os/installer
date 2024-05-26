@@ -66,7 +66,7 @@ public class EncryptView : AbstractInstallerView {
 
         var performance_image = new Gtk.Image.from_icon_name ("utilities-system-monitor-symbolic", Gtk.IconSize.LARGE_TOOLBAR);
 
-        var performance_label = new Gtk.Label (_("Drive encryption may slighty affect read and write speed when performing intense tasks.")) {
+        var performance_label = new Gtk.Label (_("Drive encryption may slightly affect read and write speed when performing intense tasks.")) {
             max_width_chars = 52,
             wrap = true,
             xalign = 0
