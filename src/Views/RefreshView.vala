@@ -35,8 +35,7 @@ public class RefreshView: OptionsView {
         string refresh_icon = "view-refresh";
         string refresh_title = _("Refresh Install");
         string refresh_description = _(
-"Reinstall %s while keeping user accounts and files.
-Applications will need to be reinstalled manually."
+"Reinstall %s while keeping user accounts and files. Applications will need to be reinstalled manually."
         ).printf(this.os);
 
         string install_icon = "system-os-installer";

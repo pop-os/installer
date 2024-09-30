@@ -85,7 +85,10 @@ public class OptionsView: AbstractInstallerView {
             var desc_label = new Gtk.Label ("<small>%s</small>".printf (desc));
             desc_label.halign = Gtk.Align.START;
             desc_label.use_markup = true;
+            desc_label.max_width_chars = 50;
             desc_label.valign = Gtk.Align.START;
+            desc_label.wrap = true;
+            desc_label.xalign = 0;
             desc_label.get_style_context ().add_class (Gtk.STYLE_CLASS_DIM_LABEL);
             content.attach (desc_label, 1, 1);
         } else {
