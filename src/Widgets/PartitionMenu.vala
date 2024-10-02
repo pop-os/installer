@@ -88,7 +88,7 @@ public class Installer.PartitionMenu : Gtk.Popover {
         use_as = new Gtk.ComboBoxText ();
         use_as.append_text (_("Root (/)"));
         use_as.append_text (_("Home (/home)"));
-        use_as.append_text (_("Boot (%s)".printf (boot_partition)));
+        use_as.append_text (_("Boot (%s)").printf (boot_partition));
         use_as.append_text (_("Swap"));
         use_as.append_text (_("Custom"));
         use_as.active = 0;

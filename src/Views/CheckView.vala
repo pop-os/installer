@@ -203,7 +203,7 @@ public class Installer.CheckView : AbstractInstallerView {
             case State.SPACE:
                 var grid = setup_grid (
                     _("Not Enough Space"),
-                    _("There is not enough room on your device to install %s. We recommend a minimum of %s of storage.".printf (Utils.get_pretty_name (), GLib.format_size (MINIMUM_SPACE))),
+                    _("There is not enough room on your device to install %s. We recommend a minimum of %s of storage.").printf (Utils.get_pretty_name (), GLib.format_size (MINIMUM_SPACE)),
                     "drive-harddisk"
                 );
                 grid.show_all ();
