@@ -129,7 +129,6 @@ msgid "Memory:"
 msgstr "Arbeitsspeicher:"
 
 #: src/Views/DiskView.vala:52
-#, fuzzy
 msgid "Select a Drive"
 msgstr "Laufwerk auswählen"
 
