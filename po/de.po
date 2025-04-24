@@ -128,8 +128,8 @@ msgstr "Prozessor:"
 msgid "Memory:"
 msgstr "Arbeitsspeicher:"
 
-#: src/Views/DiskView.vala:52
-msgid "Select a Drive"
+#: src/Views/DiskView.vala:28
+msgid "Select a drive"
 msgstr "Laufwerk auswählen"
 
 #: src/Views/DiskView.vala:56
