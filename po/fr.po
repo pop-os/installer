@@ -2,9 +2,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-04 16:11-0600\n"
-"PO-Revision-Date: 2024-10-14 20:51+0200\n"
-"Last-Translator: Roxfr <roxfr@outlook.fr>\n"
+"POT-Creation-Date: 2018-04-23 13:06-0700\n"
+"PO-Revision-Date: 2025-04-16 09:20+0000\n"
+"Last-Translator: Jérôme Herbinet <jerome@herbinet.fr>\n"
 "Language-Team: French <https://weblate.elementary.io/projects/installer/"
 "installer/fr/>\n"
 "Language: fr\n"
@@ -207,7 +207,7 @@ msgstr "Sélectionner un lecteur"
 
 #: src/Views/DiskView.vala:33 src/Views/PartitioningView.vala:105
 msgid "Erase and Install"
-msgstr "Supprimer et installer"
+msgstr "Effacer et installer"
 
 #: src/Views/DiskView.vala:98
 msgid ""
@@ -327,7 +327,7 @@ msgstr "• Redémarrer votre appareil pour démarrer à partir d'un autre lecte
 
 #: src/Views/ErrorView.vala:109 src/Views/SuccessView.vala:74
 msgid "Restart Device"
-msgstr "Redémarrer le périphérique"
+msgstr "Redémarrer l'appareil"
 
 #: src/Views/ErrorView.vala:111 src/Views/RefreshView.vala:89
 #: src/Views/TryInstallView.vala:94
@@ -580,6 +580,11 @@ msgstr "_Ouvrir"
 #: src/Widgets/IconChooser.vala:78
 msgid "_Cancel"
 msgstr "_Annuler"
+
+#: src/Widgets/DiskBar.vala:127
+#, c-format
+msgid "%s (%s)"
+msgstr "%s (%s)"
 
 #: src/Widgets/PartitionMenu.vala:62
 msgid "Use partition:"
