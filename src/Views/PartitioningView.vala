@@ -185,7 +185,7 @@ public class Installer.PartitioningView : AbstractInstallerView {
                 partitions.add (partition);
             }
 
-            var disk_bar = new DiskBar (model, path, size, (owned) partitions);
+            var disk_bar = new DiskBar (model, path, size, sector_size, (owned) partitions);
             label_sizer.add_widget (disk_bar.label);
             disk_list.pack_start (disk_bar);
         }
@@ -241,7 +241,7 @@ public class Installer.PartitioningView : AbstractInstallerView {
             }
         }
 
-        var disk_bar = new DiskBar (model, path, size, (owned) partitions);
+        var disk_bar = new DiskBar (model, path, size, sector_size, (owned) partitions);
         label_sizer.add_widget (disk_bar.label);
         disk_list.pack_start (disk_bar);
     }
@@ -308,7 +308,7 @@ public class Installer.PartitioningView : AbstractInstallerView {
                 throw new GLib.IOError.FAILED (_("EFI partition is not on a GPT disk"));
             } else if (!mount.is_valid_boot_mount ()) {
                 throw new GLib.IOError.FAILED (_("EFI partition has the wrong file system"));
-            } else if (mount.sectors < REQUIRED_EFI_SECTORS) {
+            } else if (mount.sectors < Utils.normalize_sectors(REQUIRED_EFI_SECTORS, mount.sector_size)) {
                 error = _("EFI partition is too small");
             }
         } else if (mount.mount_point == "/" && !mount.is_valid_root_mount ()) {

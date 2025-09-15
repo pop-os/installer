@@ -48,17 +48,21 @@ public class Installer.DiskView : OptionsView {
         base.clear_options();
 
         foreach (unowned Distinst.EraseOption disk in options.get_erase_options ()) {
+            uint64 sectors = disk.get_sectors ();
+            uint64 sector_size = disk.get_sector_size ();
+
             string logo = Utils.string_from_utf8 (disk.get_linux_icon ());
             string label = Utils.string_from_utf8 (disk.get_model ());
+
             string details = "%s %.1f GiB".printf (
                 Utils.string_from_utf8 (disk.get_device_path ()),
-                (double) disk.get_sectors () / SECTORS_AS_GIB
+                (double) sectors / (double) Utils.normalize_sectors (SECTORS_AS_GIB, sector_size)
             );
 
             // Ensure that the user cannot select a disk that is too large for BIOS installs.
             bool msdos_too_large =
                 Distinst.bootloader_detect () == Distinst.PartitionTable.MSDOS
-                && disk.get_sectors () > MSDOS_MAX_SECTORS;
+                && sectors > MSDOS_MAX_SECTORS;
 
             base.add_option(logo, label, details, (button) => {
                 if (disk.meets_requirements () && !msdos_too_large) {

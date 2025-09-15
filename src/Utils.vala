@@ -18,9 +18,13 @@
  * Authored by: Corentin Noël <corentin@elementary.io>
  */
 
-const double SECTORS_AS_GIB = 2 * 1024 * 1024;
+const uint64 SECTORS_AS_GIB = 2 * 1024 * 1024;
 
 namespace Utils {
+    public uint64 normalize_sectors (uint64 base_count, uint64 sector_size) {
+        return base_count / (sector_size / 512);
+    }
+
     public string string_from_utf8 (uint8[] input) {
         var builder = new GLib.StringBuilder.sized (input.length);
         builder.append_len ((string) input, input.length);
