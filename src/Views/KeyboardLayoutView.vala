@@ -216,8 +216,30 @@ public class KeyboardLayoutView : AbstractInstallerView {
     }
 
     private void set_interactive_input_layout (string layout, string? variant) {
+        set_cosmic_xkb_config (layout, variant != null ? variant : "");
         set_gsettings_input_layout (layout, variant);
         set_xkbmap_input_layout (layout, variant);
+    }
+
+    private void set_cosmic_xkb_config (string layout, string variant) {
+        File xkb_config = File.new_for_path (
+            Path.build_filename (Environment.get_user_config_dir (), "cosmic/com.system76.CosmicComp/v1/xkb_config")
+        );
+
+        try {
+            xkb_config.get_parent ()
+                .make_directory_with_parents (null);
+        } catch (Error e) {
+            critical ("could not make directories for cosmic xkb_config");
+        }
+
+        try {
+            xkb_config.create (FileCreateFlags.NONE)
+                .write (@"{ rules: \"\", model: \"\", layout: \"$layout\", variant: \"$variant\", options: Some(\"compose:ralt\"), repeat_delay: 600, repeat_rate: 25, }\n".data);
+        } catch (Error e) {
+            critical ("could not write cosmic xkb_config");
+        }
+
     }
 
     private void set_gsettings_input_layout (string layout, string? variant) {
