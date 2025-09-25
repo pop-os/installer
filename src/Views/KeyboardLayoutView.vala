@@ -222,24 +222,28 @@ public class KeyboardLayoutView : AbstractInstallerView {
     }
 
     private void set_cosmic_xkb_config (string layout, string variant) {
-        File xkb_config = File.new_for_path (
-            Path.build_filename (Environment.get_user_config_dir (), "cosmic/com.system76.CosmicComp/v1/xkb_config")
-        );
+        // Get username from the PKEXEC_UID set by pkexec to get the actual username of the live environment.
+        unowned Posix.Passwd? passwd = Posix.getpwuid (int.parse (Environment.get_variable ("PKEXEC_UID")));
+        unowned string username = passwd.pw_name;
+        // Then construct the path to the cosmic-config xkb_config file manually from that username.
+        File xkb_config = File.new_for_path (@"/home/$username/.config/cosmic/com.system76.CosmicComp/v1/xkb_config");
+
 
         try {
-            xkb_config.get_parent ()
-                .make_directory_with_parents (null);
+            File parent = xkb_config.get_parent ();
+            if (!parent.query_exists (null)) {
+                parent.make_directory_with_parents (null);
+            }
         } catch (Error e) {
-            critical ("could not make directories for cosmic xkb_config");
+            critical ("could not make directories for cosmic xkb_config: %s", e.message);
         }
 
         try {
-            xkb_config.create (FileCreateFlags.NONE)
-                .write (@"{ rules: \"\", model: \"\", layout: \"$layout\", variant: \"$variant\", options: Some(\"compose:ralt\"), repeat_delay: 600, repeat_rate: 25, }\n".data);
+            string contents = @"( rules: \"\", model: \"\", layout: \"$layout\", variant: \"$variant\", options: Some(\"compose:ralt\"), repeat_delay: 600, repeat_rate: 25, )\n";
+            xkb_config.replace_contents (contents.data, null, false, FileCreateFlags.REPLACE_DESTINATION, null);
         } catch (Error e) {
-            critical ("could not write cosmic xkb_config");
+            critical ("could not write cosmic xkb_config: %s", e.message);
         }
-
     }
 
     private void set_gsettings_input_layout (string layout, string? variant) {
