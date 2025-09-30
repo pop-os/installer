@@ -239,7 +239,7 @@ public class KeyboardLayoutView : AbstractInstallerView {
         }
 
         try {
-            string contents = @"( rules: \"\", model: \"\", layout: \"$layout\", variant: \"$variant\", options: Some(\"compose:ralt\"), repeat_delay: 600, repeat_rate: 25, )\n";
+            string contents = @"( rules: \"\", model: \"\", layout: \"$layout\", variant: \"$variant\", options: Some(\"lv3:ralt_switch,compose:rctrl\"), repeat_delay: 600, repeat_rate: 25, )\n";
             xkb_config.replace_contents (contents.data, null, false, FileCreateFlags.REPLACE_DESTINATION, null);
         } catch (Error e) {
             critical ("could not write cosmic xkb_config: %s", e.message);
