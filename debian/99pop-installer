@@ -22,11 +22,27 @@ log_begin_msg "$DESCRIPTION"
 
 APP="io.elementary.installer"
 
+# Install autostart desktop file
 chroot /root install -d -o "$USERNAME" -g "$USERNAME" \
     "/home/$USERNAME/.config/autostart/"
 
 chroot /root install -D -o "$USERNAME" -g "$USERNAME" \
     "/usr/share/applications/$APP.desktop" \
     "/home/$USERNAME/.config/autostart/$APP.desktop"
+
+# Set favorites for COSMIC
+favorites="/root/usr/share/cosmic/com.system76.CosmicAppList/v1/favorites"
+mkdir -p "$(dirname "${favorites}")"
+cat > "${favorites}" <<EOF
+[
+    "firefox",
+    "com.system76.CosmicFiles",
+    "com.system76.CosmicEdit",
+    "com.system76.CosmicTerm",
+    "com.system76.CosmicStore",
+    "com.system76.CosmicSettings",
+    "$APP",
+]
+EOF
 
 log_end_msg
