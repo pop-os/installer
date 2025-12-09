@@ -27,6 +27,11 @@ install_data(
     install_dir: join_paths(get_option('datadir'), 'polkit-1', 'actions')
 )
 
+install_data(
+    'io.elementary.installer.wrapper',
+    install_dir: join_paths(get_option('bindir'))
+)
+
 # Test the desktop file
 validate_desktop_exe = find_program('desktop-file-validate')
 test ('Validate desktop file', validate_desktop_exe,

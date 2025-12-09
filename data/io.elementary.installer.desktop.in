@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Install Pop!_OS
 Comment=Install the system
-Exec=sh -c "sleep 5 && xhost +si:localuser:root && pkexec io.elementary.installer && xhost -si:localuser:root"
+Exec=io.elementary.installer.wrapper
 Icon=system-os-installer
 Terminal=false
 Type=Application
