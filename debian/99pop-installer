@@ -45,4 +45,9 @@ cat > "${favorites}" <<EOF
 ]
 EOF
 
+# Set COSMIC X11 scaling to optimize for applications
+descale="/root/usr/share/cosmic/com.system76.CosmicComp/v1/descale_xwayland"
+mkdir -p "$(dirname "${descale}")"
+echo "r#true" > "${descale}"
+
 log_end_msg
