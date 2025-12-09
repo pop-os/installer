@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# Allow root applications to access X11
+xhost +si:localuser:root
+
+# Run installer with pkexec
+while true
+do
+    pkexec io.elementary.installer
+    status="$?"
+    echo "io.elementary.installer exited with status ${status}"
+
+    # pkexec error code 127 indicates we need to retry
+    if [ "${status}" = "127" ]
+    then
+        sleep 1
+    else
+        exit "${status}"
+    fi
+done
