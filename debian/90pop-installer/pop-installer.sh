@@ -13,7 +13,16 @@ AUTOSTART_DIR="/home/$USERNAME/.config/autostart"
 chroot ${NEWROOT} install -d -o "$USERNAME" -g "$USERNAME" ${AUTOSTART_DIR}
 chroot ${NEWROOT} install -D -o "$USERNAME" -g "$USERNAME" "/usr/share/applications/$APP.desktop" "${AUTOSTART_DIR}/$APP.desktop"
 
+# Disable suspend for the live environment
+chroot ${NEWROOT} mkdir -p "/home/$USERNAME/.config/cosmic/com.system76.CosmicIdle/v1/"
+chroot ${NEWROOT} cat > "/home/$USERNAME/.config/cosmic/com.system76.CosmicIdle/v1/suspend_on_ac_time" <<< None
+chroot ${NEWROOT} cat > "/home/$USERNAME/.config/cosmic/com.system76.CosmicIdle/v1/suspend_on_battery_time" <<< None
+chroot ${NEWROOT} cat > "/home/$USERNAME/.config/cosmic/com.system76.CosmicIdle/v1/screen_off_time" <<< None
+
+# Prevent initial setup popup
 chroot ${NEWROOT} touch "/home/$USERNAME/.config/cosmic-initial-setup-done"
+
+# Change permissions of the files we generated for the live user
 chroot ${NEWROOT} chown -R "$USERNAME:$USERNAME" "/home/$USERNAME"
 
 ln -s /run/initramfs/live ${NEWROOT}/cdrom
